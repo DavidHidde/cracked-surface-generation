@@ -64,9 +64,9 @@ def generate_path(
 
         # Update angle and width based on chance
         angle = __increment_by_chance(angle, increments[1], randomness)
-        width = __increment_by_chance(width, increments[2], randomness) + width_growth
+        width = __increment_by_chance(width, increments[2] * width, randomness) + width_growth
 
-    return (top_line[:idx], bot_line[:idx]), center, angle, width
+    return (top_line[:idx + 1], bot_line[:idx + 1]), center, angle, width
 
 
 class CrackPathGenerator:
@@ -75,6 +75,9 @@ class CrackPathGenerator:
     """
 
     def __call__(self, parameters: CrackParameters) -> tuple[np.array, np.array]:
+        """
+        Create a top and bottom line of the crack
+        """
         angle = parameters.angle
         width = parameters.width
 
@@ -95,7 +98,7 @@ class CrackPathGenerator:
 
         # Perform start steps if necessary
         if start_steps > 0:
-            width_grow_increments = min(0.2, parameters.width / start_steps)
+            width_grow_increments = max(0.2, 0.05 * parameters.width)
             width = max(0.1, parameters.width - start_steps * width_grow_increments)
             (top, bot), current_position, angle, width = generate_path(
                 current_position,
@@ -124,7 +127,7 @@ class CrackPathGenerator:
 
         # Perform end steps if necessary
         if end_steps > 0:
-            width_grow_increments = min(0.2, parameters.width / end_steps)
+            width_grow_increments = max(0.2, 0.05 * parameters.width)
             width -= width_grow_increments
             (top, bot), current_position, angle, width = generate_path(
                 current_position,
@@ -139,6 +142,11 @@ class CrackPathGenerator:
             top_line = np.concatenate([top_line, top], 0)
             bot_line = np.concatenate([bot_line, bot], 0)
 
-        # Glue top and bot lines together
+        return top_line, bot_line
+
+    def create_single_line(self, top_line: np.array, bot_line: np.array) -> tuple[np.array, np.array]:
+        """
+        Glue top and bot lines together into a single line and split into x and y
+        """
         line = np.append(np.concatenate([top_line, np.flip(bot_line, 0)]), [top_line[0, :]], 0)
         return line[:, 0], line[:, 1]
