@@ -2,7 +2,7 @@ import numpy as np
 from numpy import random
 from scipy.stats import norm
 
-from crack_parameters import CrackParameters
+from models import CrackParameters, CrackPath
 
 
 def __increment_by_chance(variable: float, increment: float, chance: float) -> float:
@@ -74,7 +74,7 @@ class CrackPathGenerator:
     Generator class for creating 2D cracks based on CrackParameters.
     """
 
-    def __call__(self, parameters: CrackParameters) -> tuple[np.array, np.array]:
+    def __call__(self, parameters: CrackParameters) -> CrackPath:
         """
         Create a top and bottom line of the crack
         """
@@ -142,11 +142,11 @@ class CrackPathGenerator:
             top_line = np.concatenate([top_line, top], 0)
             bot_line = np.concatenate([bot_line, bot], 0)
 
-        return top_line, bot_line
+        return CrackPath(top_line, bot_line)
 
-    def create_single_line(self, top_line: np.array, bot_line: np.array) -> tuple[np.array, np.array]:
+    def create_single_line(self, path: CrackPath) -> tuple[np.array, np.array]:
         """
         Glue top and bot lines together into a single line and split into x and y
         """
-        line = np.append(np.concatenate([top_line, np.flip(bot_line, 0)]), [top_line[0, :]], 0)
+        line = np.append(np.concatenate([path.top_line, np.flip(path.bot_line, 0)]), [path.top_line[0, :]], 0)
         return line[:, 0], line[:, 1]

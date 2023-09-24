@@ -1,68 +1,59 @@
+import math
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
-from scipy.spatial import ConvexHull
 
-from crack_parameters import CrackParameters
-from generators import CrackPathGenerator
+from generators.crack_model_generator import CrackModelGenerator
+from models import CrackParameters
 
-from util import PlaygroundInterface
-
-
-def centered_gaussian(points: np.array, variance: float) -> np.array:
-    """
-    Calculate the gaussian distribution value for a set of points
-    """
-    return 1. / (variance * np.sqrt(2 * np.pi)) - np.exp(points ** 2. / (2. * variance ** 2))
+from util import PlaygroundInterface, ObjFileExporter
 
 
-def calculate_hull(parameters: CrackParameters) -> np.array:
-    crack_generator = CrackPathGenerator()
-    top_line, bot_line = crack_generator(parameters)
+def set_ax_bounds(ax, x, y, z):
+    min_x = math.floor(np.min(x) - 5)
+    max_x = math.ceil(np.max(x) + 5)
+    ax.set_xticks(np.linspace(min_x, max_x, 7, dtype=int))
+    ax.set_xlim(min_x, max_x)
 
-    # Depth points
-    points_per_line = 2 + parameters.depth_resolution
-    coords = np.empty((parameters.length * points_per_line, 3))
-    for idx in range(top_line.shape[0]):
-        top_point, bot_point = top_line[idx, :], bot_line[idx, :]
-        x_points = np.linspace(top_point[0], bot_point[0], points_per_line)
-        y_points = np.linspace(top_point[1], bot_point[1], points_per_line)
+    min_y = math.floor(np.min(y) - 5)
+    max_y = math.ceil(np.max(y) + 5)
+    ax.set_yticks(np.linspace(min_y, max_y, 7, dtype=int))
+    ax.set_ylim(min_y, max_y)
 
-        # Calculate the variance of the distribution. We consider the start and end point at mu - 2 std.
-        width = np.sqrt((top_point[0] - bot_point[0]) ** 2 + (top_point[1] - bot_point[1]))
-        sigma = width / 4.
-        z_points = -centered_gaussian(np.linspace(-2 * sigma, 2 * sigma, points_per_line), sigma)
-
-        # Copy points over
-        coords[points_per_line * idx:points_per_line * idx + points_per_line, 0] = x_points
-        coords[points_per_line * idx:points_per_line * idx + points_per_line, 1] = y_points
-        coords[points_per_line * idx:points_per_line * idx + points_per_line, 2] = z_points
-
-    return coords
+    min_z = math.floor(np.min(z) - 5)
+    max_z = math.ceil(np.max(z) + 5)
+    ax.set_zticks(np.linspace(min_z, max_z, 7, dtype=int))
+    ax.set_zlim(min_z, max_z)
 
 
 def update_plot(parameters: CrackParameters, ax: Axes) -> None:
-    coords = calculate_hull(parameters)
-    hull = ConvexHull(coords)
     ax.clear()
-    ax.plot_trisurf(coords[:, 0], coords[:, 1], coords[:, 2], triangles=hull.simplices, linewidth=0.2, antialiased=True)
+    model = (CrackModelGenerator())(parameters)
+    coords = model.points
+    for face in model.faces:
+        face = np.append(face, face[0])  # Here we cycle back to the first coordinate
+        ax.plot(coords[face, 0], coords[face, 1], coords[face, 2], color='red')
+    set_ax_bounds(ax, coords[:, 0], coords[:, 1], coords[:, 2])
+
+    exporter = ObjFileExporter()
+    exporter(model, 'crack.obj')
 
 
 # Initial parameters
+DEPTH = 0.3
 VARIANCE = 0.1
 PERMUTATION_CHANCE = 0.1
-LENGTH = 20
+LENGTH = 50
 WIDTH_VARIATION = 0.0
 INITIAL_ANGLE = 0.0
 INITIAL_WIDTH = 5.0
-START_STEPS = 3
-END_STEPS = 3
-
+START_STEPS = 0
+END_STEPS = 0
 DEPTH_RESOLUTION = 4
 
 # Initial plot
 parameters = CrackParameters(
-    0,
+    DEPTH,
     INITIAL_WIDTH,
     LENGTH,
     INITIAL_ANGLE,
@@ -73,11 +64,22 @@ parameters = CrackParameters(
     PERMUTATION_CHANCE,
     DEPTH_RESOLUTION
 )
-coords = calculate_hull(parameters)
-hull = ConvexHull(coords)
+generator = CrackModelGenerator()
+model = generator(parameters)
 
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-ax.plot_trisurf(coords[:, 0], coords[:, 1], coords[:, 2], triangles=hull.simplices, linewidth=0.2, antialiased=True)
+
+coords = model.points
+for face in model.faces:
+    face = np.append(face, face[0])  # Here we cycle back to the first coordinate
+    ax.plot(coords[face, 0], coords[face, 1], coords[face, 2], color='red')
+for face in model.side_faces:
+    face = np.append(face, face[0])  # Here we cycle back to the first coordinate
+    ax.plot(coords[face, 0], coords[face, 1], coords[face, 2], color='red')
+
+set_ax_bounds(ax, coords[:, 0], coords[:, 1], coords[:, 2])
+exporter = ObjFileExporter()
+exporter(model, 'crack.obj')
 
 ui = PlaygroundInterface(
     'Crack 3D model playground',

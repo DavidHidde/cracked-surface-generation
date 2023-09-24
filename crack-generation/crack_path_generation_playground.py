@@ -3,7 +3,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
-from crack_parameters import CrackParameters
+from models import CrackParameters
 from generators import CrackPathGenerator
 from util import PlaygroundInterface
 
@@ -24,8 +24,8 @@ def set_ax_bounds(ax, x, y):
 # Update plot
 def plot_path(parameters: CrackParameters, ax: Axes):
     crack_generator = CrackPathGenerator()
-    top, bot = crack_generator(parameters)
-    x, y = crack_generator.create_single_line(top, bot)
+    path = crack_generator(parameters)
+    x, y = crack_generator.create_single_line(path)
     line = ax.get_lines()[0]
     line.set_xdata(x)
     line.set_ydata(y)
@@ -59,8 +59,8 @@ parameters = CrackParameters(
     PERMUTATION_CHANCE,
     0
 )
-top, bot = crack_generator(parameters)
-x, y = crack_generator.create_single_line(top, bot)
+path = crack_generator(parameters)
+x, y = crack_generator.create_single_line(path)
 line, = ax.plot(x, y, color='red')
 set_ax_bounds(ax, x, y)
 plt.grid()

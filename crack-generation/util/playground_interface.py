@@ -11,10 +11,11 @@ from matplotlib.backends._backend_tk import NavigationToolbar2Tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
-from crack_parameters import CrackParameters
+from models import CrackParameters
 
 from sys import platform as sys_pf
 
+# Fix for MacOS
 if sys_pf == 'darwin':
     import matplotlib
 
@@ -55,10 +56,7 @@ class PlaygroundInterface:
         ax.set_title(title)
         plt.title(title)
 
-    def start(
-            self,
-            parameters: CrackParameters
-    ) -> None:
+    def start(self, parameters: CrackParameters) -> None:
         """
         Start the UI with a certain set of parameters
         """
@@ -100,14 +98,14 @@ class PlaygroundInterface:
         slider_settings = {
             'depth': {
                 'label': 'Depth',
-                'from_': 0.,
-                'to': 1000.,
+                'from_': 0.1,
+                'to': 5.,
                 'resolution': 0.1
             },
             'width': {
                 'label': 'Width',
                 'from_': 0.,
-                'to': 100.,
+                'to': 10.,
                 'resolution': 0.1
             },
             'length': {
