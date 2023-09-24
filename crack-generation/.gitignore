@@ -259,4 +259,4 @@ cython_debug/
 .fleet/
 
 # Generated models
-.obj
+*.obj
