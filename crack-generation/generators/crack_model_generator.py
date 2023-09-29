@@ -33,6 +33,8 @@ def calculate_control_points(parameters: CrackParameters) -> np.array:
         width = np.sqrt(np.sum((top_point - bot_point) ** 2))
         sigma = 1 / width  # inverse relation between width and depth
         z_points = -parameters.depth * centered_gaussian(np.linspace(-2 * sigma, 2 * sigma, points_per_line), sigma)
+        # We want the begin and end to be on the same line, so we move all points down to set the ends to 0
+        z_points -= z_points[0]
 
         # Copy points over
         coords[points_per_line * idx:points_per_line * idx + points_per_line, 0] = x_points

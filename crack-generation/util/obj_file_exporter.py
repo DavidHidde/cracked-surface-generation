@@ -1,3 +1,5 @@
+import numpy as np
+
 from models import CrackModel
 
 
@@ -14,6 +16,9 @@ class ObjFileExporter:
         points = model.points
         faces = model.faces + 1
         side_faces = model.side_faces + 1
+
+        # Scale down to 1% to get a reasonable size.
+        points = [coords * 0.01 for coords in points]
 
         try:
             with open(filepath, 'w') as objfile:

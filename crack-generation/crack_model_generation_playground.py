@@ -6,7 +6,7 @@ from matplotlib.axes import Axes
 from generators.crack_model_generator import CrackModelGenerator
 from models import CrackParameters
 
-from util import PlaygroundInterface, ObjFileExporter
+from util import PlaygroundInterface
 
 
 def set_ax_bounds(ax, x, y, z):
@@ -34,9 +34,6 @@ def update_plot(parameters: CrackParameters, ax: Axes) -> None:
         face = np.append(face, face[0])  # Here we cycle back to the first coordinate
         ax.plot(coords[face, 0], coords[face, 1], coords[face, 2], color='red')
     set_ax_bounds(ax, coords[:, 0], coords[:, 1], coords[:, 2])
-
-    exporter = ObjFileExporter()
-    exporter(model, 'crack.obj')
 
 
 # Initial parameters
@@ -78,8 +75,6 @@ for face in model.side_faces:
     ax.plot(coords[face, 0], coords[face, 1], coords[face, 2], color='red')
 
 set_ax_bounds(ax, coords[:, 0], coords[:, 1], coords[:, 2])
-exporter = ObjFileExporter()
-exporter(model, 'crack.obj')
 
 ui = PlaygroundInterface(
     'Crack 3D model playground',
