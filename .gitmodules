@@ -1,0 +1,3 @@
+[submodule "model"]
+	path = model
+	url = git@github.com:dimitrisdais/crack_detection_CNN_masonry.git
