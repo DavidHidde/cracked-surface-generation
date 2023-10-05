@@ -9,7 +9,7 @@ def centered_gaussian(points: np.array, variance: float) -> np.array:
     """
     Calculate the gaussian distribution value for a set of points
     """
-    return 1. / (variance * np.sqrt(2 * np.pi)) - np.exp(points ** 2. / (2. * variance ** 2))
+    return 1. / (variance * np.sqrt(2 * np.pi)) * np.exp(- points ** 2. / (2. * variance ** 2))
 
 
 def calculate_control_points(parameters: CrackParameters) -> np.array:
