@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
 
-from crack_generation.generators.crack_model_generator import CrackModelGenerator
+from crack_generation import CrackModelGenerator
 from crack_generation.models import CrackParameters
 
 from crack_generation.util import PlaygroundInterface

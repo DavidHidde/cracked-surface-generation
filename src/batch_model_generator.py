@@ -3,9 +3,9 @@ import dataclasses
 
 from tqdm import tqdm
 
-from generators.crack_model_generator import CrackModelGenerator
-from models import CrackParameters
-from util import ObjFileExporter
+from crack_generation import CrackModelGenerator
+from crack_generation.models import CrackParameters
+from crack_generation.util import ObjFileExporter
 
 parser = argparse.ArgumentParser(
     prog='Batch Crack model generator',

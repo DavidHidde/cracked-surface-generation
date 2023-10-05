@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from crack_generation.models import CrackParameters
-from crack_generation.generators import CrackPathGenerator
+from crack_generation import CrackPathGenerator
 from crack_generation.util import PlaygroundInterface
 
 
