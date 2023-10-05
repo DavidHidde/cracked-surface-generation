@@ -11,7 +11,7 @@ from matplotlib.backends._backend_tk import NavigationToolbar2Tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
-from models import CrackParameters
+from crack_generation.models import CrackParameters
 
 from sys import platform as sys_pf
 

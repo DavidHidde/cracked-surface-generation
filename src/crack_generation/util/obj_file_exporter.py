@@ -1,6 +1,4 @@
-import numpy as np
-
-from models import CrackModel
+from crack_generation.models import CrackModel
 
 
 class ObjFileExporter:

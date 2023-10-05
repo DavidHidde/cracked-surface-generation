@@ -3,10 +3,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
 
-from generators.crack_model_generator import CrackModelGenerator
-from models import CrackParameters
+from crack_generation.generators.crack_model_generator import CrackModelGenerator
+from crack_generation.models import CrackParameters
 
-from util import PlaygroundInterface
+from crack_generation.util import PlaygroundInterface
 
 
 def set_ax_bounds(ax, x, y, z):

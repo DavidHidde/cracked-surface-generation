@@ -18,5 +18,5 @@ for file in files:
     image = cv2.imread(os.path.join(path, file))
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     thresholded_image = cv2.inRange(hsv, (55, 70, 75), (80, 255, 255))
-    
+
     cv2.imwrite(os.path.join(path, file[:-4] + '-label.png'), thresholded_image)

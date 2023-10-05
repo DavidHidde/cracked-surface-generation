@@ -3,9 +3,9 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
-from models import CrackParameters
-from generators import CrackPathGenerator
-from util import PlaygroundInterface
+from crack_generation.models import CrackParameters
+from crack_generation.generators import CrackPathGenerator
+from crack_generation.util import PlaygroundInterface
 
 
 # Set the bounds of a plot

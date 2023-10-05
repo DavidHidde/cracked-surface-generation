@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.spatial import Delaunay
 
-from models import CrackParameters, CrackModel
+from crack_generation.models import CrackParameters, CrackModel
 from .crack_path_generator import CrackPathGenerator
 
 

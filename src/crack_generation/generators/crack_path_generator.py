@@ -2,7 +2,7 @@ import numpy as np
 from numpy import random
 from scipy.stats import norm
 
-from models import CrackParameters, CrackPath
+from crack_generation.models import CrackParameters, CrackPath
 
 
 def __increment_by_chance(variable: float, increment: float, chance: float) -> float:
