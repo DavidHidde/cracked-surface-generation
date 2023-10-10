@@ -28,9 +28,9 @@ class BoundingBox:
             min(self.min_vertex[2], bounding_box.min_vertex[2]),
         ])
         new_max = np.array([
-            min(self.max_vertex[0], bounding_box.max_vertex[0]),
-            min(self.max_vertex[1], bounding_box.max_vertex[1]),
-            min(self.max_vertex[2], bounding_box.max_vertex[2]),
+            max(self.max_vertex[0], bounding_box.max_vertex[0]),
+            max(self.max_vertex[1], bounding_box.max_vertex[1]),
+            max(self.max_vertex[2], bounding_box.max_vertex[2]),
         ])
         dimensions = new_max - new_min
 

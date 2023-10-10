@@ -3,12 +3,12 @@ import math
 import numpy as np
 from skimage import draw
 
-from dataset_generation.models import BoundingBox
+from dataset_generation.models import BoundingBox, SurfaceMap
 
 
 def rasterize_face(verts: np.array, grid: np.array) -> None:
     """
-    Rasterize the lines of the face
+    Rasterize the lines of the face. Note that we
     """
     num_verts = len(verts)
     for idx in range(num_verts):
@@ -16,7 +16,7 @@ def rasterize_face(verts: np.array, grid: np.array) -> None:
         next_vert = verts[(idx + 1) % num_verts]
         rows, columns = draw.line(curr_vert[2], curr_vert[0], next_vert[2], next_vert[0])
         depths = np.linspace(curr_vert[1], next_vert[1], len(rows))
-        grid[rows, columns] += depths
+        grid[rows, columns] = np.maximum(grid[rows, columns], depths)
 
 
 def calculate_bounding_box(object: bpy.types.Object) -> BoundingBox:
@@ -51,7 +51,7 @@ class SurfaceMapGenerator:
     Assumes the object to be positioned along the x-axis
     """
 
-    def __call__(self, objects: list[bpy.types.Object], resolution=500) -> np.array:
+    def __call__(self, objects: list[bpy.types.Object]) -> SurfaceMap:
         """
         Generate the surface map of an object.
         Takes x=x and z=z and disregards the y-dimension.
@@ -62,14 +62,14 @@ class SurfaceMapGenerator:
         for idx in range(1, len(objects)):
             bounding_box = bounding_box.combine(calculate_bounding_box(objects[idx]))
 
-        # Determine the contrast stretching factor
-        contrast_stretch_factor = 255. / bounding_box.depth
+        # Setup the grid - We want millimeter precision and Blender dimensions are in meters, so we multiply by 1000
+        grid_factor = 1000
+        grid = np.zeros((
+            math.ceil(bounding_box.height * grid_factor) + 1,
+            math.ceil(bounding_box.width * grid_factor) + 1
+        ))
 
-        # Setup the grid
-        max_dimension = max(bounding_box.width, bounding_box.height)
-        grid_factor = (resolution - 1) / max_dimension
-        grid = np.zeros((math.ceil(bounding_box.height * grid_factor), math.ceil(bounding_box.width * grid_factor)))
-
+        # Draw faces
         for obj in objects:
             mesh = obj.data
             for face in mesh.polygons:
@@ -80,9 +80,11 @@ class SurfaceMapGenerator:
                 verts = [mesh.vertices[vertex_idx] for vertex_idx in face.vertices]
                 verts = np.array([[vert.co.x, vert.co.y, vert.co.z] for vert in verts])
                 verts = np.subtract(verts, bounding_box.min_vertex)  # Make sure all values are positive
-                verts[:, 0] *= grid_factor  # Cast to grid space
-                verts[:, 1] *= contrast_stretch_factor  # Cast to 0-255 range
-                verts[:, 2] *= grid_factor  # Cast to grid space
+                verts *= grid_factor  # Cast to grid dimensions
                 rasterize_face(np.rint(verts).astype(int), grid)
 
-        return grid
+        # Cast depths ranges to [0, 255].
+        contrast_stretch_factor = 255. / np.max(grid)
+        grid *= contrast_stretch_factor
+
+        return SurfaceMap(grid, bounding_box, contrast_stretch_factor, grid_factor)
