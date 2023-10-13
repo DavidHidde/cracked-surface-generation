@@ -1,5 +1,6 @@
 import argparse
 import dataclasses
+import pickle
 
 from tqdm import tqdm
 
@@ -12,6 +13,9 @@ parser = argparse.ArgumentParser(
     description='Generate a batch of cracks in the current workspace'
 )
 parser.add_argument('--count', dest='count', type=int, required=False, default=1)
+
+with open('resources/surface.dump', 'rb') as surface_dump:
+    surface_map = pickle.load(surface_dump)
 
 # Add parameters
 for field in dataclasses.fields(CrackParameters):
@@ -28,5 +32,5 @@ generator = CrackModelGenerator()
 exporter = ObjFileExporter()
 crack_params = CrackParameters(**params)
 for idx in tqdm(range(count)):
-    exporter(generator(crack_params), f'crack-{idx}.obj')
+    exporter(generator(crack_params, surface_map), f'crack-{idx}.obj')
 print('\nAll done exporting')

@@ -12,6 +12,8 @@ class SurfaceMap:
     """
 
     surface: np.array
+    mask: np.array  # Boolean array marking objects in the surface as False
+    distance_transform: np.array    # Distance transform of the inverse mask
+    gradient_angles: np.array   # Gradient angles of the distance transform
     bounding_box: BoundingBox
-    contrast_factor: float
     grid_factor: float

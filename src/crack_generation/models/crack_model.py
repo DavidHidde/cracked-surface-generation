@@ -13,5 +13,6 @@ class CrackModel:
 
     parameters: CrackParameters
     points: np.array
+    point_means: np.array
     faces: np.array
     side_faces: np.array

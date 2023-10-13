@@ -1,10 +1,9 @@
 from dataclasses import asdict
-from math import floor
+from math import ceil
 from tkinter import Tk, Button, Scale, HORIZONTAL, Frame
 from typing import Callable
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 from matplotlib.axes import Axes
 from matplotlib.backends._backend_tk import NavigationToolbar2Tk
@@ -98,15 +97,15 @@ class PlaygroundInterface:
         slider_settings = {
             'depth': {
                 'label': 'Depth',
-                'from_': 0.1,
-                'to': 5.,
-                'resolution': 0.1
+                'from_': 1,
+                'to': 15.,
+                'resolution': 1
             },
             'width': {
-                'label': 'Width',
-                'from_': 0.,
-                'to': 10.,
-                'resolution': 0.1
+                'label': 'Initial width',
+                'from_': 1,
+                'to': 15.,
+                'resolution': 1.
             },
             'length': {
                 'label': 'Length',
@@ -114,23 +113,11 @@ class PlaygroundInterface:
                 'to': 1000,
                 'resolution': 1
             },
-            'angle': {
-                'label': 'Initial angle',
-                'from_': 0.,
-                'to': 2 * np.pi,
-                'resolution': 0.1
-            },
             'variance': {
                 'label': 'Variance',
                 'from_': 0.,
-                'to': 5.0,
-                'resolution': 0.1
-            },
-            'width_variation': {
-                'label': 'Width variation',
-                'from_': 0.,
-                'to': 1.,
-                'resolution': 0.1
+                'to': 2.0,
+                'resolution': 0.01
             },
             'start_pointiness': {
                 'label': 'Start pointiness',
@@ -144,18 +131,36 @@ class PlaygroundInterface:
                 'to': 100,
                 'resolution': 1
             },
-            'randomness': {
-                'label': 'Randomness',
-                'from_': 0.,
-                'to': 1.,
-                'resolution': 0.1
-            },
             'depth_resolution': {
                 'label': 'Depth resolution',
                 'from_': 0,
-                'to': 100,
+                'to': 10,
                 'resolution': 1
-            }
+            },
+            'allowed_path_overlap': {
+                'label': 'Allowed path overlap percentage',
+                'from_': 0,
+                'to': 1,
+                'resolution': 0.01
+            },
+            'angle_update_chance': {
+                'label': 'Angle update chance',
+                'from_': 0.,
+                'to': 1.,
+                'resolution': 0.01
+            },
+            'width_update_chance': {
+                'label': 'Width update chance',
+                'from_': 0.,
+                'to': 1.,
+                'resolution': 0.01
+            },
+            'breakthrough_chance': {
+                'label': 'Breakthrough chance',
+                'from_': 0.,
+                'to': 1.,
+                'resolution': 0.01
+            },
         }
 
         # Create subframe
@@ -164,7 +169,7 @@ class PlaygroundInterface:
 
         # Add sliders
         parameters_dict = asdict(parameters)
-        scales_per_column = floor(len(slider_settings) / 2.)
+        scales_per_column = ceil(len(slider_settings) / 2)
         idx = 0
         for attr_name, settings in slider_settings.items():
             scale = Scale(**settings, master=frame, orient=HORIZONTAL, length=250)

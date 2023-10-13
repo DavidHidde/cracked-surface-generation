@@ -1,5 +1,7 @@
 import bpy
 import math
+
+import cv2
 import numpy as np
 from skimage import draw
 
@@ -8,15 +10,32 @@ from dataset_generation.models import BoundingBox, SurfaceMap
 
 def rasterize_face(verts: np.array, grid: np.array) -> None:
     """
-    Rasterize the lines of the face. Note that we
+    Rasterize the lines of the face.
     """
     num_verts = len(verts)
+    int_verts = np.rint(verts).astype(int)
     for idx in range(num_verts):
-        curr_vert = verts[idx]
-        next_vert = verts[(idx + 1) % num_verts]
+        curr_vert = int_verts[idx]
+        next_vert = int_verts[(idx + 1) % num_verts]
         rows, columns = draw.line(curr_vert[2], curr_vert[0], next_vert[2], next_vert[0])
-        depths = np.linspace(curr_vert[1], next_vert[1], len(rows))
+        depths = np.linspace(verts[idx][1], verts[(idx + 1) % num_verts][1], len(rows))
         grid[rows, columns] = np.maximum(grid[rows, columns], depths)
+
+
+def get_background_mask(grid: np.array) -> np.array:
+    """
+    Fill all faces on the surface in a single pass
+    """
+    _, labels, stats, _ = cv2.connectedComponentsWithStatsWithAlgorithm(
+        (grid == 0).astype(np.uint8),
+        4,
+        cv2.CV_32S,
+        -1  # Default algorithm
+    )
+    # We assume the component with the biggest area to be the background
+    background_component_idx = np.argmax(stats[:, cv2.CC_STAT_AREA])
+    # Place original edges back
+    return np.logical_or(labels > background_component_idx, grid > 0)
 
 
 def calculate_bounding_box(object: bpy.types.Object) -> BoundingBox:
@@ -81,10 +100,18 @@ class SurfaceMapGenerator:
                 verts = np.array([[vert.co.x, vert.co.y, vert.co.z] for vert in verts])
                 verts = np.subtract(verts, bounding_box.min_vertex)  # Make sure all values are positive
                 verts *= grid_factor  # Cast to grid dimensions
-                rasterize_face(np.rint(verts).astype(int), grid)
+                rasterize_face(verts, grid)
 
-        # Cast depths ranges to [0, 255].
-        contrast_stretch_factor = 255. / np.max(grid)
-        grid *= contrast_stretch_factor
+        mask = get_background_mask(grid)
+        distance_transform = cv2.distanceTransform((mask == False).astype(np.uint8), cv2.DIST_L2, cv2.DIST_MASK_5)
+        gradients = np.gradient(distance_transform)
+        angles = np.arctan2(gradients[1], gradients[0])
 
-        return SurfaceMap(grid, bounding_box, contrast_stretch_factor, grid_factor)
+        return SurfaceMap(
+            grid,
+            mask,
+            distance_transform,
+            angles,
+            bounding_box,
+            grid_factor
+        )

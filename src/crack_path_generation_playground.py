@@ -1,49 +1,40 @@
-import math
+import pickle
 
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from crack_generation.models import CrackParameters
 from crack_generation import CrackPathGenerator
-from crack_generation.util import PlaygroundInterface
-
-
-# Set the bounds of a plot
-def set_ax_bounds(ax, x, y):
-    min_x = math.floor(np.min(x) - 5)
-    max_x = math.ceil(np.max(x) + 5)
-    ax.set_xticks(np.linspace(min_x, max_x, 7, dtype=int))
-    ax.set_xlim(min_x, max_x)
-
-    min_y = math.floor(np.min(y) - 5)
-    max_y = math.ceil(np.max(y) + 5)
-    ax.set_yticks(np.linspace(min_y, max_y, 7, dtype=int))
-    ax.set_ylim(min_y, max_y)
+from crack_generation.util import PlaygroundInterface, create_single_line
 
 
 # Update plot
 def plot_path(parameters: CrackParameters, ax: Axes):
     crack_generator = CrackPathGenerator()
-    path = crack_generator(parameters)
-    x, y = crack_generator.create_single_line(path)
+    path = crack_generator(parameters, surface_map)
+    x, y = create_single_line(path)
     line = ax.get_lines()[0]
     line.set_xdata(x)
     line.set_ydata(y)
-    set_ax_bounds(ax, x, y)
 
+
+# Load surface file
+with open('resources/surface.dump', 'rb') as surface_dump:
+    surface_map = pickle.load(surface_dump)
 
 # Initial parameters
 VARIANCE = 0.1
-PERMUTATION_CHANCE = 0.1
-LENGTH = 500
-WIDTH_VARIATION = 0.0
-INITIAL_ANGLE = 0.0
-INITIAL_WIDTH = 5.0
+LENGTH = 100
+INITIAL_WIDTH = 5
 START_STEPS = 0
 END_STEPS = 0
+ALLOWED_OVERLAP = 1.
+ANGLE_PERMUTATION_CHANCE = 0.1
+WIDTH_PERMUTATION_CHANCE = 0.1
+BREAKTHROUGH_CHANCE = 0.1
 
 # Setup plot
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(16, 6), dpi=100)
 
 # Initial plot
 crack_generator = CrackPathGenerator()
@@ -51,19 +42,21 @@ parameters = CrackParameters(
     0,
     INITIAL_WIDTH,
     LENGTH,
-    INITIAL_ANGLE,
     VARIANCE,
-    WIDTH_VARIATION,
     START_STEPS,
     END_STEPS,
-    PERMUTATION_CHANCE,
-    0
+    0,
+    ALLOWED_OVERLAP,
+    ANGLE_PERMUTATION_CHANCE,
+    WIDTH_PERMUTATION_CHANCE,
+    BREAKTHROUGH_CHANCE
 )
-path = crack_generator(parameters)
-x, y = crack_generator.create_single_line(path)
+path = crack_generator(parameters, surface_map)
+x, y = create_single_line(path)
 line, = ax.plot(x, y, color='red')
-set_ax_bounds(ax, x, y)
-plt.grid()
+ax.set_xlabel('x')
+ax.set_ylabel('y')
+ax.imshow(surface_map.surface.astype(np.uint8), cmap='gray')
 
 ui = PlaygroundInterface(
     'Crack parameter playground',

@@ -1,4 +1,6 @@
 import math
+import pickle
+
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
@@ -28,41 +30,51 @@ def set_ax_bounds(ax, x, y, z):
 
 def update_plot(parameters: CrackParameters, ax: Axes) -> None:
     ax.clear()
-    model = (CrackModelGenerator())(parameters)
+    model = (CrackModelGenerator())(parameters, surface_map)
     coords = model.points
     for face in model.faces:
         face = np.append(face, face[0])  # Here we cycle back to the first coordinate
         ax.plot(coords[face, 0], coords[face, 1], coords[face, 2], color='red')
+    for face in model.side_faces:
+        face = np.append(face, face[0])  # Here we cycle back to the first coordinate
+        ax.plot(coords[face, 0], coords[face, 1], coords[face, 2], color='blue')
+
     set_ax_bounds(ax, coords[:, 0], coords[:, 1], coords[:, 2])
 
 
+# Load surface file
+with open('resources/surface.dump', 'rb') as surface_dump:
+    surface_map = pickle.load(surface_dump)
+
 # Initial parameters
-DEPTH = 0.3
+DEPTH = 5
 VARIANCE = 0.1
-PERMUTATION_CHANCE = 0.1
-LENGTH = 50
-WIDTH_VARIATION = 0.0
-INITIAL_ANGLE = 0.0
-INITIAL_WIDTH = 5.0
+LENGTH = 100
+INITIAL_WIDTH = 5
 START_STEPS = 0
 END_STEPS = 0
 DEPTH_RESOLUTION = 4
+ALLOWED_OVERLAP = 1.
+ANGLE_PERMUTATION_CHANCE = 0.1
+WIDTH_PERMUTATION_CHANCE = 0.1
+BREAKTHROUGH_CHANCE = 0.1
 
 # Initial plot
 parameters = CrackParameters(
     DEPTH,
     INITIAL_WIDTH,
     LENGTH,
-    INITIAL_ANGLE,
     VARIANCE,
-    WIDTH_VARIATION,
     START_STEPS,
     END_STEPS,
-    PERMUTATION_CHANCE,
-    DEPTH_RESOLUTION
+    DEPTH_RESOLUTION,
+    ALLOWED_OVERLAP,
+    ANGLE_PERMUTATION_CHANCE,
+    WIDTH_PERMUTATION_CHANCE,
+    BREAKTHROUGH_CHANCE
 )
 generator = CrackModelGenerator()
-model = generator(parameters)
+model = generator(parameters, surface_map)
 
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 
@@ -72,7 +84,7 @@ for face in model.faces:
     ax.plot(coords[face, 0], coords[face, 1], coords[face, 2], color='red')
 for face in model.side_faces:
     face = np.append(face, face[0])  # Here we cycle back to the first coordinate
-    ax.plot(coords[face, 0], coords[face, 1], coords[face, 2], color='red')
+    ax.plot(coords[face, 0], coords[face, 1], coords[face, 2], color='blue')
 
 set_ax_bounds(ax, coords[:, 0], coords[:, 1], coords[:, 2])
 

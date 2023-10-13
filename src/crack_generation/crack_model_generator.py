@@ -2,6 +2,7 @@ import numpy as np
 from scipy.spatial import Delaunay
 
 from crack_generation.models import CrackParameters, CrackModel
+from dataset_generation.models import SurfaceMap
 from .crack_path_generator import CrackPathGenerator
 
 
@@ -12,12 +13,12 @@ def centered_gaussian(points: np.array, variance: float) -> np.array:
     return 1. / (variance * np.sqrt(2 * np.pi)) * np.exp(- points ** 2. / (2. * variance ** 2))
 
 
-def calculate_control_points(parameters: CrackParameters) -> np.array:
+def calculate_control_points(parameters: CrackParameters, surface: SurfaceMap) -> np.array:
     """
     Calculate x y z control net for the crack mesh
     """
     crack_generator = CrackPathGenerator()
-    path = crack_generator(parameters)
+    path = crack_generator(parameters, surface)
     top_line, bot_line = path.top_line, path.bot_line
 
     # Depth points
@@ -49,16 +50,15 @@ class CrackModelGenerator:
     Generator of 3D crack models
     """
 
-    def __call__(self, parameters: CrackParameters) -> CrackModel:
+    def __call__(self, parameters: CrackParameters, surface: SurfaceMap) -> CrackModel:
         """
         Create a quad mesh out of a set of parameters
         """
 
         # Calculate and center coords
-        coords = calculate_control_points(parameters)
-        coords[:, 0] -= np.mean(coords[:, 0])
-        coords[:, 1] -= np.mean(coords[:, 1])
-        coords[:, 2] -= np.mean(coords[:, 2])
+        coords = calculate_control_points(parameters, surface)
+        coords_means = np.mean(coords, axis=0)
+        coords[:, :] -= coords_means
 
         # Calculate quad faces
         points_per_line = 2 + parameters.depth_resolution
@@ -78,9 +78,13 @@ class CrackModelGenerator:
                 ])
 
         # Sides - which we keep triangulated
+        start_coords = coords[:points_per_line, :]
+        end_coords = coords[(length - 1) * points_per_line:, :]
+        start_x_is_const = np.all(np.isclose(start_coords[:, 0], start_coords[0, 0]))
+        end_x_is_const = np.all(np.isclose(end_coords[:, 0], end_coords[0, 0]))
         side_faces = np.concatenate([
-            Delaunay(coords[:points_per_line, 1:]).simplices,
-            Delaunay(coords[(length - 1) * points_per_line:, 1:]).simplices + (length - 1) * points_per_line
+            Delaunay(start_coords[:, [(1 if start_x_is_const else 0), 2]]).simplices,
+            Delaunay(end_coords[:, [(1 if end_x_is_const else 0), 2]]).simplices + (length - 1) * points_per_line
         ], 0)
 
-        return CrackModel(parameters, coords, faces, side_faces)
+        return CrackModel(parameters, coords, coords_means, faces, side_faces)

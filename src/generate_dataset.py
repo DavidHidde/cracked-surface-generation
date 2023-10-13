@@ -1,4 +1,5 @@
 import os
+import pickle
 
 import bpy
 import argparse
@@ -30,7 +31,9 @@ def main():
         wall = wall.evaluated_get(bpy.context.evaluated_depsgraph_get())
         surface_generator = SurfaceMapGenerator()
         surface = surface_generator([wall])
-        im = Image.fromarray(surface.astype(np.uint8))
+        with open('surface.dump', 'wb') as surface_file:
+            pickle.dump(surface, surface_file)
+        im = Image.fromarray(surface.surface.astype(np.uint8))
         im.convert('L')
         im.save('test.png')
         

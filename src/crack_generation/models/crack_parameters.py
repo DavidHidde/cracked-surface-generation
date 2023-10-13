@@ -13,10 +13,11 @@ class CrackParameters:
     length: int
 
     # Generation parameters - These affect mainly the look of the crack
-    angle: float
     variance: float
-    width_variation: float
     start_pointiness: int
     end_pointiness: int
-    randomness: float
     depth_resolution: int
+    allowed_path_overlap: float
+    angle_update_chance: float
+    width_update_chance: float
+    breakthrough_chance: float
