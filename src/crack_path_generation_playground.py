@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from crack_generation.models import CrackParameters
 from crack_generation import CrackPathGenerator
-from crack_generation.util import PlaygroundInterface, create_single_line
+from crack_generation.ui import PlaygroundInterface
+from crack_generation.util import create_single_line
 
 
 # Update plot
@@ -34,7 +35,7 @@ WIDTH_PERMUTATION_CHANCE = 0.1
 BREAKTHROUGH_CHANCE = 0.1
 
 # Setup plot
-fig, ax = plt.subplots(figsize=(16, 6), dpi=100)
+fig, ax = plt.subplots(figsize=(16, 5), dpi=100)
 
 # Initial plot
 crack_generator = CrackPathGenerator()
@@ -56,7 +57,7 @@ x, y = create_single_line(path)
 line, = ax.plot(x, y, color='red')
 ax.set_xlabel('x')
 ax.set_ylabel('y')
-ax.imshow(surface_map.surface.astype(np.uint8), cmap='gray')
+ax.imshow(surface_map.surface, cmap='gray')
 
 ui = PlaygroundInterface(
     'Crack parameter playground',

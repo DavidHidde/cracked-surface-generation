@@ -96,8 +96,8 @@ class SurfaceMapGenerator:
                 if face.normal.y < 0.2:
                     continue
 
-                verts = [mesh.vertices[vertex_idx] for vertex_idx in face.vertices]
-                verts = np.array([[vert.co.x, vert.co.y, vert.co.z] for vert in verts])
+                verts = [obj.matrix_world @ mesh.vertices[vertex_idx].co for vertex_idx in face.vertices]
+                verts = np.array([[vert.x, vert.y, vert.z] for vert in verts])
                 verts = np.subtract(verts, bounding_box.min_vertex)  # Make sure all values are positive
                 verts *= grid_factor  # Cast to grid dimensions
                 rasterize_face(verts, grid)
@@ -105,7 +105,7 @@ class SurfaceMapGenerator:
         mask = get_background_mask(grid)
         distance_transform = cv2.distanceTransform((mask == False).astype(np.uint8), cv2.DIST_L2, cv2.DIST_MASK_5)
         gradients = np.gradient(distance_transform)
-        angles = np.arctan2(gradients[1], gradients[0])
+        angles = np.arctan2(gradients[0], gradients[1])
 
         return SurfaceMap(
             grid,

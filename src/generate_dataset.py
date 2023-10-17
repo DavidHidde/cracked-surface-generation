@@ -1,29 +1,34 @@
-import os
 import pickle
 
 import bpy
-import argparse
 
-import numpy as np
-from PIL import Image
-
-from dataset_generation.operations import ObjImporter, SceneClearer, SurfaceMapGenerator
+from crack_generation.models import CrackParameters
+from dataset_generation.operations import SceneClearer, SurfaceMapGenerator, CrackGenerator, MaterialLoader
+from dataset_generation.scene_generator import SceneGenerator
 
 
 def main():
     """
     Main entrypoint
     """
-    parser = argparse.ArgumentParser(
-        prog='Data set generator',
-        description='Generate a data set consisting of images and labels using models and Blender.'
-    )
-    parser.add_argument('--models', dest='models_path', type=str, required=True)
-    args = parser.parse_args()
-
     # Reset the scene
     scene_clearer = SceneClearer()
     scene_clearer()
+
+    parameters = CrackParameters(
+        20.,
+        5.,
+        300,
+        0.1,
+        0,
+        5,
+        5,
+        1.,
+        0.2,
+        0.1,
+        0.1
+    )
+    materials = (MaterialLoader())()
 
     # Identify base wall
     if 'Wall' in bpy.data.objects:
@@ -31,17 +36,13 @@ def main():
         wall = wall.evaluated_get(bpy.context.evaluated_depsgraph_get())
         surface_generator = SurfaceMapGenerator()
         surface = surface_generator([wall])
+        crack_generator = CrackGenerator()
+        crack = crack_generator(parameters, surface, 'crack.obj')
+        scene_generator = SceneGenerator()
+        scene_generator(wall, bpy.data.objects['Camera'], crack, materials)
+
         with open('surface.dump', 'wb') as surface_file:
             pickle.dump(surface, surface_file)
-        im = Image.fromarray(surface.surface.astype(np.uint8))
-        im.convert('L')
-        im.save('test.png')
-        
-
-    # model_files = [file.split(os.pathsep)[-1] for file in os.listdir(args.models_path) if file.endswith('.obj')]
-    # if len(model_files) > 0:
-    #     importer = ObjImporter()
-    #     importer(args.models_path, model_files)
 
 
 # Main entrypoint

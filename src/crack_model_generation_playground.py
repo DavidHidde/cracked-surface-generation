@@ -8,7 +8,7 @@ from matplotlib.axes import Axes
 from crack_generation import CrackModelGenerator
 from crack_generation.models import CrackParameters
 
-from crack_generation.util import PlaygroundInterface
+from crack_generation.ui import PlaygroundInterface
 
 
 def set_ax_bounds(ax, x, y, z):
@@ -76,7 +76,7 @@ parameters = CrackParameters(
 generator = CrackModelGenerator()
 model = generator(parameters, surface_map)
 
-fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+fig, ax = plt.subplots(figsize=(16, 5), dpi=100, subplot_kw={"projection": "3d"})
 
 coords = model.points
 for face in model.faces:
