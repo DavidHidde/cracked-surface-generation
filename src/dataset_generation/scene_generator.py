@@ -1,14 +1,8 @@
 import bpy
-from mathutils import Vector
 
-from dataset_generation.operations import MaterialLoader
+from dataset_generation.operations import MaterialLoader, CrackRenderer
+from dataset_generation.operations.obj import CameraAligner, ObjDuplicator
 
-BRICK_MATERIALS = [
-    'Brick - red',
-    'Brick - gray'
-]
-MORTAR_MATERIALS = ['Mortar - white']
-CRACK_MATERIAL = 'Crack marker'
 HDRIS = []
 
 
@@ -17,6 +11,11 @@ class SceneGenerator:
     Generator aimed at generating a scene using a crack, wall and a camera
     """
 
+    __camera_aligner: CameraAligner = CameraAligner()
+    __crack_renderer: CrackRenderer = CrackRenderer()
+    __obj_duplicator: ObjDuplicator = ObjDuplicator()
+
+
     def __call__(
             self,
             wall: bpy.types.Object,
@@ -24,32 +23,30 @@ class SceneGenerator:
             crack: bpy.types.Object,
             materials: dict[str, dict[str, bpy.types.Material]]
     ) -> None:
+        """
+        Generate a scene using a wall and a crack. This consist of the following steps:
+        - Create a crack marker, which is the intersection between the crack and the wall.
+        - 'Carve the crack out of the wall' by calculating the difference between the wall and crack.
+        - Align the camera with the crack.
+        - Render the wall with and without crack.
+        """
         wall = bpy.data.objects[wall.name]  # Get unevaluated object
         crack.hide_render = True
 
-        # Create a copy of the crack to serve as a marker
-        crack_marker = crack.copy()
-        crack_marker.data = crack.data.copy()
-        bpy.context.scene.collection.objects.link(crack_marker)
-        crack_marker.data.materials.append(materials[MaterialLoader.KEYWORD_CRACK][MaterialLoader.CRACK_MATERIALS[0]])
+        # Create a copy of the crack to serve as a marker and calculate the intersection with the wall.
+        crack_marker = self.__obj_duplicator(crack)
+        crack_marker.data.materials.append(materials[MaterialLoader.KEYWORD_FOREGROUND])
 
-        # Carve the crack out of the wall
-        wall.modifiers['Boolean'].object = crack
-
-        # Set the marker as the intersection of the wall and the crack
         intersection_mod = crack_marker.modifiers.new('crack_intersect', 'BOOLEAN')
         intersection_mod.operation = 'INTERSECT'
         intersection_mod.use_self = True
         intersection_mod.object = wall
 
+        # Carve the crack out of the wall
+        wall.modifiers['Boolean'].object = crack
+
         # Move camera to object
-        crack_center = sum((Vector(vert) for vert in crack.bound_box), Vector()) / 8.
-        camera.location = crack.matrix_world @ crack_center
-        camera.location.y -= 1.
+        self.__camera_aligner(camera, crack, (0., 0., 0.), (0., 0., 0.))
 
         # Start rendering
-        bpy.context.scene.render.filepath = 'crack.png'
-        bpy.ops.render.render(write_still=True)
-        crack_marker.hide_render = False
-        bpy.context.scene.render.filepath = 'crack-label.png'
-        bpy.ops.render.render(write_still=True)
+        self.__crack_renderer(crack_marker, 'crack')

@@ -3,8 +3,10 @@ import pickle
 import bpy
 
 from crack_generation.models import CrackParameters
-from dataset_generation.operations import SceneClearer, SurfaceMapGenerator, CrackGenerator, MaterialLoader
+from dataset_generation.crack_generator import CrackGenerator
+from dataset_generation.operations import SceneClearer, MaterialLoader
 from dataset_generation.scene_generator import SceneGenerator
+from dataset_generation.surface_map_generator import SurfaceMapGenerator
 
 
 def main():
