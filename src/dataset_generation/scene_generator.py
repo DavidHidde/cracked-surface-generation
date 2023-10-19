@@ -40,6 +40,7 @@ class SceneGenerator:
         intersection_mod = crack_marker.modifiers.new('crack_intersect', 'BOOLEAN')
         intersection_mod.operation = 'INTERSECT'
         intersection_mod.use_self = True
+        intersection_mod.use_hole_tolerant = True
         intersection_mod.object = wall
 
         # Carve the crack out of the wall

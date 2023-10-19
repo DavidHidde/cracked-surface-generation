@@ -20,22 +20,22 @@ def calculate_control_points(parameters: CrackParameters, surface: SurfaceMap) -
     crack_generator = CrackPathGenerator()
     path = crack_generator(parameters, surface)
     top_line, bot_line = path.top_line, path.bot_line
+    length = top_line.shape[0]
+
+    # Calculate z points, which we keep constant
+    sigma = 1.
+    points_per_line = 2 + parameters.depth_resolution
+    z_points = -parameters.depth * centered_gaussian(np.linspace(-2 * sigma, 2 * sigma, points_per_line), sigma)
+    # We want the begin and end to be on the same line, so we move all points down to set the ends to 0
+    z_points -= z_points[0]
 
     # Depth points
-    length = top_line.shape[0]
     points_per_line = 2 + parameters.depth_resolution
     coords = np.empty((length * points_per_line, 3))
     for idx in range(length):
         top_point, bot_point = top_line[idx, :], bot_line[idx, :]
         x_points = np.linspace(top_point[0], bot_point[0], points_per_line)
         y_points = np.linspace(top_point[1], bot_point[1], points_per_line)
-
-        # Calculate the variance of the distribution. We consider the start and end point at mu - 2 std.
-        width = np.sqrt(np.sum((top_point - bot_point) ** 2))
-        sigma = 1 / width  # inverse relation between width and depth
-        z_points = -parameters.depth * centered_gaussian(np.linspace(-2 * sigma, 2 * sigma, points_per_line), sigma)
-        # We want the begin and end to be on the same line, so we move all points down to set the ends to 0
-        z_points -= z_points[0]
 
         # Copy points over
         coords[points_per_line * idx:points_per_line * idx + points_per_line, 0] = x_points
