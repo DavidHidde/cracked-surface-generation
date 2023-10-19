@@ -34,7 +34,13 @@ def get_background_mask(grid: np.array) -> np.array:
     )
     # We assume the component with the biggest area to be the background
     background_component_idx = np.argmax(stats[:, cv2.CC_STAT_AREA])
-    return labels > background_component_idx
+
+    # Place original edges back
+    mask = np.logical_or(labels > background_component_idx, grid > 0)
+
+    # Make the label smaller through a dilation
+    kernel = np.ones((3, 3), np.uint8)
+    return cv2.dilate(mask.astype(np.uint8), kernel).astype(bool)
 
 
 def calculate_bounding_box(object: bpy.types.Object) -> BoundingBox:

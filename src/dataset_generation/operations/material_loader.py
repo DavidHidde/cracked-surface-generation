@@ -1,37 +1,42 @@
 import bpy
 
+from dataset_generation.models import MaterialsContainer
+
+BRICK_MATERIALS = [
+    'Brick - red',
+    'Brick - gray'
+]
+
+MORTAR_MATERIALS = [
+    'Mortar - white'
+]
+
+CRACK_MATERIALS = [
+    'Marker - foreground'
+]
+
+WORLD_TEXTURES = [
+    'pond_bridge_night_4k.exr',
+    'rotes_rathaus_4k.exr',
+    'studio_garden_4k.exr',
+    'stuttgart_suburbs_4k.exr',
+    'urban_street_01_4k.exr'
+]
+
 
 class MaterialLoader:
     """
-    Simple class loading a set of materials.
+    Simple class loading all materials and textures.
     """
 
-    KEYWORD_BRICK = 'brick'
-    KEYWORD_MORTAR = 'mortar'
-    KEYWORD_FOREGROUND = 'foreground'
-
-    BRICK_MATERIALS = [
-        'Brick - red',
-        'Brick - gray'
-    ]
-    MORTAR_MATERIALS = ['Mortar - white']
-    FOREGROUND_MATERIAL = 'Marker - foreground'
-
-    def __call__(self) -> dict[str, dict[str, bpy.types.Material]]:
+    def __call__(self) -> MaterialsContainer:
         """
         Load all materials.
         """
-        materials = {
-            self.KEYWORD_BRICK: {},
-            self.KEYWORD_MORTAR: {},
-            self.KEYWORD_FOREGROUND: bpy.data.materials[self.FOREGROUND_MATERIAL]
-        }
 
-        for material_name in self.BRICK_MATERIALS:
-            if material_name in bpy.data.materials:
-                materials[self.KEYWORD_BRICK][material_name] = bpy.data.materials[material_name]
-        for material_name in self.MORTAR_MATERIALS:
-            if material_name in bpy.data.materials:
-                materials[self.KEYWORD_MORTAR][material_name] = bpy.data.materials[material_name]
-
-        return materials
+        return MaterialsContainer(
+            [bpy.data.materials[material_name] for material_name in BRICK_MATERIALS],
+            [bpy.data.materials[material_name] for material_name in MORTAR_MATERIALS],
+            [bpy.data.materials[material_name] for material_name in CRACK_MATERIALS],
+            [bpy.data.images[image_name] for image_name in WORLD_TEXTURES]
+        )

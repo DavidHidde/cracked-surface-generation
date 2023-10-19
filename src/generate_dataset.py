@@ -1,23 +1,25 @@
-import pickle
-
 import bpy
+import time
 
 from crack_generation.models import CrackParameters
 from dataset_generation.crack_generator import CrackGenerator
-from dataset_generation.operations import SceneClearer, MaterialLoader
+from dataset_generation.operations import SceneClearer, MaterialLoader, SceneParameterGenerator
 from dataset_generation.scene_generator import SceneGenerator
 from dataset_generation.surface_map_generator import SurfaceMapGenerator
+
+DATASET_SIZE = 10
 
 
 def main():
     """
     Main entrypoint
     """
-    # Reset the scene
-    scene_clearer = SceneClearer()
-    scene_clearer()
 
-    parameters = CrackParameters(
+    print('-- Starting rendering pipeline... --')
+    start_time = time.time()
+
+    # Setup of constants
+    crack_parameters = CrackParameters(
         20.,
         5.,
         300,
@@ -30,21 +32,34 @@ def main():
         0.1,
         0.1
     )
+    scene_clearer = SceneClearer()
     materials = (MaterialLoader())()
+    surface_generator = SurfaceMapGenerator()
+    crack_generator = CrackGenerator()
+    scene_generator = SceneGenerator()
+    scene_parameters_generator = SceneParameterGenerator()
 
-    # Identify base wall
-    if 'Wall' in bpy.data.objects:
-        wall = bpy.data.objects['Wall']
-        wall = wall.evaluated_get(bpy.context.evaluated_depsgraph_get())
-        surface_generator = SurfaceMapGenerator()
-        surface = surface_generator([wall])
-        crack_generator = CrackGenerator()
-        crack = crack_generator(parameters, surface, 'crack.obj')
-        scene_generator = SceneGenerator()
-        scene_generator(wall, bpy.data.objects['Camera'], crack, materials)
+    wall = bpy.data.objects['Wall']
+    wall = wall.evaluated_get(bpy.context.evaluated_depsgraph_get())
+    wall_surface = surface_generator([wall])
+    wall = bpy.data.objects['Wall']  # Return to unevaluated version
+    camera = bpy.data.objects['Camera']
 
-        with open('surface.dump', 'wb') as surface_file:
-            pickle.dump(surface, surface_file)
+    """
+    Main generation loop:
+        - Clear the scene.
+        - Generate a new crack.
+        - Generate new scene parameters.
+        - Generate a new scene and render.
+    """
+    for idx in range(DATASET_SIZE):
+        file_name = f'crack-{idx}'
+        scene_clearer()
+        crack = crack_generator(crack_parameters, wall_surface, file_name + '.obj')
+        scene_parameters = scene_parameters_generator(file_name, materials)
+        scene_generator(wall, camera, crack, scene_parameters)
+
+    print(f'-- Rendering done after {round((time.time() - start_time) / 60, 2)} minutes --')
 
 
 # Main entrypoint
