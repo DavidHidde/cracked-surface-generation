@@ -40,7 +40,7 @@ def get_background_mask(grid: np.array) -> np.array:
 
     # Make the label smaller through a dilation
     kernel = np.ones((3, 3), np.uint8)
-    return cv2.dilate(mask.astype(np.uint8), kernel).astype(bool)
+    return cv2.erode(mask.astype(np.uint8), kernel).astype(bool)
 
 
 def calculate_bounding_box(object: bpy.types.Object) -> BoundingBox:

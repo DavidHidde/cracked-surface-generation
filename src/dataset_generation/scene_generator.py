@@ -38,7 +38,7 @@ class SceneGenerator:
         intersection_mod.operation = 'INTERSECT'
         intersection_mod.use_self = True
         intersection_mod.use_hole_tolerant = True
-        intersection_mod.object = wall
+        intersection_mod.object = bpy.data.objects[f'{wall.name}-duplicate']
 
         # Carve the crack out of the wall
         wall.modifiers['Boolean'].object = crack

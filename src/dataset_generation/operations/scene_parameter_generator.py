@@ -5,8 +5,8 @@ from dataset_generation.models import SceneParameters, MaterialsContainer
 MIN_ANGLE = -np.pi / 16
 MAX_ANGLE = np.pi / 16
 
-MIN_XZ_DISTANCE = -0.3
-MAX_XZ_DISTANCE = 0.3
+MIN_XZ_DISTANCE = -0.2
+MAX_XZ_DISTANCE = 0.2
 
 MIN_Y_DISTANCE = -1.0
 MAX_Y_DISTANCE = -0.5

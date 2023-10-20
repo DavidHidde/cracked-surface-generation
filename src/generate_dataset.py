@@ -7,10 +7,8 @@ from dataset_generation.operations import SceneClearer, MaterialLoader, ScenePar
 from dataset_generation.scene_generator import SceneGenerator
 from dataset_generation.surface_map_generator import SurfaceMapGenerator
 
-DATASET_SIZE = 10
 
-
-def main():
+def main(dataset_size: int = 1):
     """
     Main entrypoint
     """
@@ -52,7 +50,7 @@ def main():
         - Generate new scene parameters.
         - Generate a new scene and render.
     """
-    for idx in range(DATASET_SIZE):
+    for idx in range(dataset_size):
         file_name = f'crack-{idx}'
         scene_clearer()
         crack = crack_generator(crack_parameters, wall_surface, file_name + '.obj')
