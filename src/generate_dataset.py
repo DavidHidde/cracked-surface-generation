@@ -21,14 +21,13 @@ def main(dataset_size: int = 1):
 
     # Setup of constants
     crack_parameters = CrackParameters(
-        20.,
-        5.,
-        0.1,
+        30.,
+        10.,
         0,
-        5,
-        5,
+        0,
+        0,
         1.,
-        0.2,
+        0.5,
         0.1,
         0.1
     )

@@ -49,8 +49,8 @@ def determine_start_point(grid_width: float, grid_height: float, surface_map: Su
     # Keep randoming until we find a value where we can actually start
     while not collision_checker.within_bounds(position) or collision_checker.in_object(position):
         position = np.random.randint(
-            [grid_width, grid_height],
-            [num_columns - grid_width, num_rows - grid_height],
+            [grid_width + 1, grid_height + 1],
+            [num_columns - grid_width - 1, num_rows - grid_height - 1],
             size=(2,)
         )
         position = move_to_mortar(position, surface_map)

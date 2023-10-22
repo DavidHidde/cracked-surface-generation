@@ -23,12 +23,13 @@ with open('resources/surface_parameters.dump', 'rb') as surface_dump:
     surface_parameters = pickle.load(surface_dump)
 
 # Initial parameters
-VARIANCE = 0.1
+DEPTH = 0
 INITIAL_WIDTH = 5
 START_STEPS = 0
 END_STEPS = 0
-ALLOWED_OVERLAP = 1.
-ANGLE_PERMUTATION_CHANCE = 0.1
+DEPTH_RESOLUTION = 0
+STEP_SIZE = 2.
+GRADIENT_INFLUENCE = 0.5
 WIDTH_PERMUTATION_CHANCE = 0.1
 BREAKTHROUGH_CHANCE = 0.1
 
@@ -38,14 +39,13 @@ fig, ax = plt.subplots(figsize=(16, 5), dpi=100)
 # Initial plot
 crack_generator = CrackPathGenerator()
 parameters = CrackParameters(
-    0,
+    DEPTH,
     INITIAL_WIDTH,
-    VARIANCE,
     START_STEPS,
     END_STEPS,
-    0,
-    ALLOWED_OVERLAP,
-    ANGLE_PERMUTATION_CHANCE,
+    DEPTH_RESOLUTION,
+    STEP_SIZE,
+    GRADIENT_INFLUENCE,
     WIDTH_PERMUTATION_CHANCE,
     BREAKTHROUGH_CHANCE
 )
