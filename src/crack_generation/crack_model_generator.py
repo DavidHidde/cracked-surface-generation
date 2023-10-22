@@ -2,7 +2,7 @@ import numpy as np
 from scipy.spatial import Delaunay
 
 from crack_generation.models import CrackParameters, CrackModel
-from dataset_generation.models import SurfaceMap
+from dataset_generation.models import SurfaceParameters
 from .crack_path_generator import CrackPathGenerator
 
 
@@ -13,12 +13,12 @@ def centered_gaussian(points: np.array, variance: float) -> np.array:
     return 1. / (variance * np.sqrt(2 * np.pi)) * np.exp(- points ** 2. / (2. * variance ** 2))
 
 
-def calculate_control_points(parameters: CrackParameters, surface: SurfaceMap) -> np.array:
+def calculate_control_points(parameters: CrackParameters, surface_parameters: SurfaceParameters) -> np.array:
     """
     Calculate x y z control net for the crack mesh
     """
     crack_generator = CrackPathGenerator()
-    path = crack_generator(parameters, surface)
+    path = crack_generator(parameters, surface_parameters)
     top_line, bot_line = path.top_line, path.bot_line
     length = top_line.shape[0]
 
@@ -50,13 +50,13 @@ class CrackModelGenerator:
     Generator of 3D crack models
     """
 
-    def __call__(self, parameters: CrackParameters, surface: SurfaceMap) -> CrackModel:
+    def __call__(self, parameters: CrackParameters, surface_parameters: SurfaceParameters) -> CrackModel:
         """
         Create a quad mesh out of a set of parameters
         """
 
         # Calculate and center coords
-        coords = calculate_control_points(parameters, surface)
+        coords = calculate_control_points(parameters, surface_parameters)
         coords_means = np.mean(coords, axis=0)
         coords[:, :] -= coords_means
 

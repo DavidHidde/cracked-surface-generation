@@ -1,18 +1,17 @@
 import pickle
 
-import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from crack_generation.models import CrackParameters
 from crack_generation import CrackPathGenerator
 from crack_generation.ui import PlaygroundInterface
-from crack_generation.util import create_single_line
+from crack_generation.operations import create_single_line
 
 
 # Update plot
 def plot_path(parameters: CrackParameters, ax: Axes):
     crack_generator = CrackPathGenerator()
-    path = crack_generator(parameters, surface_map)
+    path = crack_generator(parameters, surface_parameters)
     x, y = create_single_line(path)
     line = ax.get_lines()[0]
     line.set_xdata(x)
@@ -20,12 +19,11 @@ def plot_path(parameters: CrackParameters, ax: Axes):
 
 
 # Load surface file
-with open('resources/surface.dump', 'rb') as surface_dump:
-    surface_map = pickle.load(surface_dump)
+with open('resources/surface_parameters.dump', 'rb') as surface_dump:
+    surface_parameters = pickle.load(surface_dump)
 
 # Initial parameters
 VARIANCE = 0.1
-LENGTH = 100
 INITIAL_WIDTH = 5
 START_STEPS = 0
 END_STEPS = 0
@@ -42,7 +40,6 @@ crack_generator = CrackPathGenerator()
 parameters = CrackParameters(
     0,
     INITIAL_WIDTH,
-    LENGTH,
     VARIANCE,
     START_STEPS,
     END_STEPS,
@@ -52,12 +49,12 @@ parameters = CrackParameters(
     WIDTH_PERMUTATION_CHANCE,
     BREAKTHROUGH_CHANCE
 )
-path = crack_generator(parameters, surface_map)
+path = crack_generator(parameters, surface_parameters)
 x, y = create_single_line(path)
 line, = ax.plot(x, y, color='red')
 ax.set_xlabel('x')
 ax.set_ylabel('y')
-ax.imshow(surface_map.surface, cmap='gray')
+ax.imshow(surface_parameters.surface_map.mask, cmap='gray')
 
 ui = PlaygroundInterface(
     'Crack parameter playground',

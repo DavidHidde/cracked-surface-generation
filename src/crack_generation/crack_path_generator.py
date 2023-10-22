@@ -2,9 +2,10 @@ import numpy as np
 from scipy.stats import norm
 
 from crack_generation.models import CrackParameters, CrackPath
-from crack_generation.util import get_rotation_matrix, increment_by_chance, choose_initial_position, within_bounds, \
-    in_object, check_and_mark_overlap
-from dataset_generation.models import SurfaceMap
+from crack_generation.operations import get_rotation_matrix, increment_by_chance, CrackPointChooser, CollisionChecker
+from dataset_generation.models import SurfaceParameters, SurfaceMap
+
+MIN_DISTANCE = 1
 
 MIN_WIDTH = 1.
 MAX_WIDTH_GROW_FACTOR = 0.05
@@ -34,67 +35,64 @@ def determine_new_points(
 
 
 def generate_path(
-        surface: SurfaceMap,
         initial_position: np.array,
+        end_position: np.array,
+        surface_map: SurfaceMap,
         angle: float,
         width: float,
-        width_growth_schedule: np.array,
+        width_grow_increments: float,
         parameters: CrackParameters
 ) -> tuple[np.array, np.array]:
     """
     Generate a path and the corresponding top and bottom line from a set of crack parameters
     """
-    top_line, bot_line = np.empty((parameters.length, 2), dtype=int), np.empty((parameters.length, 2), dtype=int)
-    center = np.copy(initial_position).astype(float)
+    collision_checker = CollisionChecker(surface_map)
     sigma_square = parameters.variance ** 2
-    overlap_map = np.zeros(surface.mask.shape, dtype=bool)
-    moving_through_object = in_object(initial_position, surface)
+    center, top_point, bot_point = determine_new_points(initial_position, width, angle, sigma_square)
+    top_line, bot_line = np.array([top_point], int), np.array([bot_point], int)
+    moving_through_object = collision_checker.in_object(initial_position)
     idx = 0
 
-    while idx < parameters.length and (width >= MIN_WIDTH or width_growth_schedule[idx] > 0):
-        width_grow = width_growth_schedule[idx]  # Set before incrementing idx
+    # Perform crack path generation, which ends when the crack becomes too small or reached the end
+    while width >= MIN_WIDTH and np.linalg.norm(end_position - center) > MIN_DISTANCE:
         new_center, top_point, bot_point = determine_new_points(center, width, angle, sigma_square)
 
         # Stop condition: We should be within bounds
-        if not within_bounds(top_point, surface) or not within_bounds(bot_point, surface):
+        if not collision_checker.within_bounds(top_point) or not collision_checker.within_bounds(bot_point):
             break
 
         # Check if we're outside the mortar. If we're not, add it to the line
-        center_in_object = in_object(np.rint(new_center).astype(int), surface)
-        top_in_object = in_object(top_point, surface)
-        bot_in_object = in_object(bot_point, surface)
+        center_in_object = collision_checker.in_object(np.rint(new_center).astype(int))
+        top_in_object = collision_checker.in_object(top_point)
+        bot_in_object = collision_checker.in_object(bot_point)
 
-        # NB: This would be nicer as a match statement but Python doesn't want to play along
-        if not moving_through_object and (center_in_object or top_in_object or bot_in_object):
+        # While the current position remain invalid, try to fix it
+        while not moving_through_object and (center_in_object or top_in_object or bot_in_object):
             if np.random.random_sample() < parameters.breakthrough_chance:
                 moving_through_object = True
-                continue
-
-            # Orthogonal to a wall, we need to roll back a bit before making a turn
-            # if center_in_object:
-            #     idx = int(max(idx - np.ceil(width / 2) - 1, 0))
-            #     top_point, bot_point = top_line[max(idx - 1, 0), :], bot_line[max(idx - 1, 0), :]
-            #     center = (top_point + bot_point) / 2
+                break
 
             center_int = np.rint(center).astype(int)
-            angle = angle + 0.3 * surface.gradient_angles[center_int[1], center_int[0]]
-            width = width + 0.3 * (surface.distance_transform[center_int[1], center_int[0]] - width)
-        else:
-            # Check if the points overlap and only register them if they don't overlap too much
-            if check_and_mark_overlap(top_point, bot_point, overlap_map, parameters.allowed_path_overlap):
-                center = new_center
-                top_line[idx, :] = top_point
-                bot_line[idx, :] = bot_point
-                idx += 1
-                moving_through_object = center_in_object or top_in_object or bot_in_object
+            angle += 0.2 * surface_map.gradient_angles[center_int[1], center_int[0]]
+            width -= 0.2 * max(width - surface_map.distance_transform[center_int[1], center_int[0]], 0)
 
-            # Update angle and width based on chance
-            increments = norm.rvs(size=2, scale=sigma_square)
-            angle = increment_by_chance(angle, increments[0], parameters.angle_update_chance)
-            width = increment_by_chance(width, increments[1], parameters.width_update_chance) + width_grow
+            center_in_object = collision_checker.in_object(np.rint(new_center).astype(int))
+            top_in_object = collision_checker.in_object(top_point)
+            bot_in_object = collision_checker.in_object(bot_point)
 
-        # Keep angle within [-π, π]
-        angle = angle % (np.sign(angle) * -1 * np.pi) if not -np.pi <= angle <= np.pi else angle
+        if collision_checker.check_and_mark_overlap(top_point, bot_point, parameters.allowed_path_overlap):
+            center = new_center
+            top_line = np.append(top_line, [top_point], axis=0)
+            bot_line = np.append(bot_line, [bot_point], axis=0)
+            moving_through_object = center_in_object or top_in_object or bot_in_object
+            width += width_grow_increments if idx < parameters.start_pointiness else 0
+            angle = np.arctan2(end_position[1] - center[1], end_position[0] - center[0])
+            idx += 1
+
+        # Update angle and width based on chance
+        # increments = norm.rvs(size=2, scale=sigma_square)
+        # angle = increment_by_chance(angle, increments[0], parameters.angle_update_chance)
+        # width = increment_by_chance(width, increments[1], parameters.width_update_chance) + width_grow
 
     return top_line[:idx], bot_line[:idx]
 
@@ -104,38 +102,28 @@ class CrackPathGenerator:
     Generator class for creating 2D cracks based on CrackParameters.
     """
 
-    def __call__(self, parameters: CrackParameters, surface: SurfaceMap) -> CrackPath:
+    __point_chooser: CrackPointChooser = CrackPointChooser()
+
+    def __call__(self, crack_parameters: CrackParameters, surface_parameters: SurfaceParameters) -> CrackPath:
         """
         Create a top and bottom line of the crack based on the surface.
         """
-        total_steps = parameters.length
-        start_steps = parameters.start_pointiness
-        end_steps = parameters.end_pointiness
-
-        # Account for start and end steps going out of bounds
-        if start_steps + end_steps > total_steps:
-            boundary_steps = start_steps + end_steps
-            start_steps = round(total_steps * start_steps / boundary_steps)
-            end_steps = round(total_steps * end_steps / boundary_steps)
-
         # Initial positions
-        current_position, width, angle = choose_initial_position(surface, parameters)
+        start_position, end_position, width, angle = self.__point_chooser(crack_parameters, surface_parameters)
 
-        # Initialise remaining variables
-        width_grow_schedule = np.zeros((total_steps,))
+        # Shrink width if the width should grow at the start
         width_grow_increments = max(DEFAULT_WIDTH_GROW, MAX_WIDTH_GROW_FACTOR * width)
-        width = max(MIN_WIDTH, width - start_steps * width_grow_increments)
-        width_grow_schedule[:start_steps] = width_grow_increments
-        width_grow_schedule[total_steps - end_steps:] = -width_grow_increments
+        width = max(MIN_WIDTH, width - crack_parameters.start_pointiness * width_grow_increments)
 
         # Launch path generation
         top_line, bot_line = generate_path(
-            surface,
-            current_position,
+            start_position,
+            end_position,
+            surface_parameters.surface_map,
             angle,
             width,
-            width_grow_schedule,
-            parameters
+            width_grow_increments,
+            crack_parameters
         )
 
         return CrackPath(top_line, bot_line)

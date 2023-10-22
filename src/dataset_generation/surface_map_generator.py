@@ -112,11 +112,17 @@ class SurfaceMapGenerator:
         gradients = np.gradient(distance_transform)
         angles = np.arctan2(gradients[0], gradients[1])
 
+        inverse_distance_transform = cv2.distanceTransform(mask.astype(np.uint8), cv2.DIST_L2, cv2.DIST_MASK_5)
+        inverse_gradients = np.gradient(distance_transform)
+        inverse_angles = np.arctan2(inverse_gradients[0], inverse_gradients[1])
+
         return SurfaceMap(
             grid,
             mask,
             distance_transform,
             angles,
+            inverse_distance_transform,
+            inverse_angles,
             bounding_box,
             grid_factor
         )

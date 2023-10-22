@@ -107,12 +107,6 @@ class PlaygroundInterface:
                 'to': 15.,
                 'resolution': 1.
             },
-            'length': {
-                'label': 'Length',
-                'from_': 0,
-                'to': 1000,
-                'resolution': 1
-            },
             'variance': {
                 'label': 'Variance',
                 'from_': 0.,

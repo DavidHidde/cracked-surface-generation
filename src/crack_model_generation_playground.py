@@ -43,8 +43,8 @@ def update_plot(parameters: CrackParameters, ax: Axes) -> None:
 
 
 # Load surface file
-with open('resources/surface.dump', 'rb') as surface_dump:
-    surface_map = pickle.load(surface_dump)
+with open('resources/surface_parameters.dump', 'rb') as surface_dump:
+    surface_parameters = pickle.load(surface_dump)
 
 # Initial parameters
 DEPTH = 5
@@ -63,7 +63,6 @@ BREAKTHROUGH_CHANCE = 0.1
 parameters = CrackParameters(
     DEPTH,
     INITIAL_WIDTH,
-    LENGTH,
     VARIANCE,
     START_STEPS,
     END_STEPS,
@@ -74,7 +73,7 @@ parameters = CrackParameters(
     BREAKTHROUGH_CHANCE
 )
 generator = CrackModelGenerator()
-model = generator(parameters, surface_map)
+model = generator(parameters, surface_parameters)
 
 fig, ax = plt.subplots(figsize=(16, 5), dpi=100, subplot_kw={"projection": "3d"})
 

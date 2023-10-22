@@ -10,7 +10,6 @@ class CrackParameters:
     # Dimension parameters - These directly affect the size of the crack
     depth: float
     width: float
-    length: int
 
     # Generation parameters - These affect mainly the look of the crack
     variance: float
