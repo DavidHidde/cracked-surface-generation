@@ -37,7 +37,7 @@ def update_plot(parameters: CrackParameters, ax: Axes) -> None:
         ax.plot(coords[face, 0], coords[face, 1], coords[face, 2], color='red')
     for face in model.side_faces:
         face = np.append(face, face[0])  # Here we cycle back to the first coordinate
-        ax.plot(coords[face, 0], coords[face, 1], coords[face, 2], color='blue')
+        ax.plot(coords[face, 0], coords[face, 1], coords[face, 2], color='red')
 
     set_ax_bounds(ax, coords[:, 0], coords[:, 1], coords[:, 2])
 

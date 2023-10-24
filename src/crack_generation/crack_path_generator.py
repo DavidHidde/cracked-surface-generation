@@ -1,7 +1,10 @@
+import random
+
 import numpy as np
 
+from crack_generation.crack_trajectory_generator import CrackTrajectoryGenerator
 from crack_generation.models import CrackParameters, CrackPath
-from crack_generation.operations import get_rotation_matrix, increment_by_chance, CrackPointChooser, CollisionChecker
+from crack_generation.operations import CollisionChecker
 from dataset_generation.models import SurfaceParameters, SurfaceMap
 
 MIN_DISTANCE = 5
@@ -9,6 +12,13 @@ MIN_DISTANCE = 5
 MIN_WIDTH = 1.
 MAX_WIDTH_GROW_FACTOR = 0.05
 MAX_WIDTH_GROW = 0.2
+
+
+def increment_by_chance(variable: float, increment: float, chance: float) -> float:
+    """
+    Increment a value based on a chance
+    """
+    return variable + (increment if random.random() < chance else 0.)
 
 
 def determine_width_points(
@@ -19,8 +29,7 @@ def determine_width_points(
     """
     Calculate the top and bot points using the center, width and angle.
     """
-    rotation_matrix = get_rotation_matrix(angle)
-    offset = np.dot(rotation_matrix, np.array([0., width])) / 2.
+    offset = width * np.array([-np.sin(angle), np.cos(angle)]) / 2.
     top_point = np.rint(center + offset).astype(int)
     bot_point = np.rint(center - offset).astype(int)
 
@@ -64,9 +73,13 @@ def generate_path(
         direction_vector = factor * gradient_vector + (1 - factor) * end_point_vector
         direction_vector /= np.linalg.norm(direction_vector)
 
-        # Update parameters for the current step
+        # Update parameters for the current step unless the step reaches outside of bounds
         center += parameters.step_size * direction_vector
         center_int = np.rint(center).astype(int)
+
+        if not collision_checker.within_bounds(center):
+            break
+
         angle = np.arctan2(direction_vector[1], direction_vector[0])
         top_point, bot_point = determine_width_points(center, width, angle)
         top_line, bot_line = np.append(top_line, [top_point], axis=0), np.append(bot_line, [bot_point], axis=0)
@@ -84,24 +97,30 @@ class CrackPathGenerator:
     Generator class for creating 2D cracks based on CrackParameters.
     """
 
-    __point_chooser: CrackPointChooser = CrackPointChooser()
+    __trajectory_generator: CrackTrajectoryGenerator = CrackTrajectoryGenerator()
 
     def __call__(self, crack_parameters: CrackParameters, surface_parameters: SurfaceParameters) -> CrackPath:
         """
         Create a top and bottom line of the crack based on the surface.
         """
         # Initial positions
-        start_position, end_position, width, angle = self.__point_chooser(crack_parameters, surface_parameters)
+        pivot_points, width, angle = self.__trajectory_generator(crack_parameters, surface_parameters)
 
         # Launch path generation
-        top_line, bot_line = generate_path(
-            start_position,
-            end_position,
-            surface_parameters.surface_map,
-            angle,
-            width,
-            crack_parameters
-        )
+        idx = 0
+        top_line, bot_line = np.empty((0, 2)), np.empty((0, 2))
+        while idx < pivot_points.shape[0] - 1:
+            new_top_line, new_bot_line = generate_path(
+                pivot_points[idx, :],
+                pivot_points[idx + 1, :],
+                surface_parameters.surface_map,
+                angle,
+                width,
+                crack_parameters
+            )
+            top_line = np.concatenate([top_line, new_top_line], axis=0)
+            bot_line = np.concatenate([bot_line, new_bot_line], axis=0)
+            idx += 1
 
         # Reduce step widths based on start and end pointiness
         width_grow_increments = max(MAX_WIDTH_GROW, MAX_WIDTH_GROW_FACTOR * width)

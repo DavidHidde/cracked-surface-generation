@@ -1,11 +1,19 @@
 import pickle
 
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.axes import Axes
-from crack_generation.models import CrackParameters
+from crack_generation.models import CrackParameters, CrackPath
 from crack_generation import CrackPathGenerator
 from crack_generation.ui import PlaygroundInterface
-from crack_generation.operations import create_single_line
+
+
+def create_single_line(path: CrackPath) -> tuple[np.array, np.array]:
+    """
+    Glue top and bot lines together into a single line and split into x and y
+    """
+    line = np.append(np.concatenate([path.top_line, np.flip(path.bot_line, 0)]), [path.top_line[0, :]], 0)
+    return line[:, 0], line[:, 1]
 
 
 # Update plot

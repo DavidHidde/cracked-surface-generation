@@ -129,7 +129,7 @@ class PlaygroundInterface:
                 'label': 'Step size',
                 'from_': 0.1,
                 'to': 5.,
-                'resolution': 0.1
+                'resolution': 1
             },
             'gradient_influence': {
                 'label': 'Gradient influence',

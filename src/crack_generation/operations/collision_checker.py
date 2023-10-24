@@ -27,4 +27,4 @@ class CollisionChecker:
         """
         Check if the poisition is in an object outside of the mortar.
         """
-        return self.__surface_map.mask[position[1], position[0]]
+        return self.within_bounds(position) and self.__surface_map.mask[position[1], position[0]]
