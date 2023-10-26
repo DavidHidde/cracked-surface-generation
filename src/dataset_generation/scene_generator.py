@@ -16,7 +16,6 @@ class SceneGenerator:
 
     def __call__(
             self,
-            wall: bpy.types.Object,
             camera: bpy.types.Object,
             crack: bpy.types.Object,
             parameters: SceneParameters
@@ -38,9 +37,10 @@ class SceneGenerator:
         intersection_mod.operation = 'INTERSECT'
         intersection_mod.use_self = True
         intersection_mod.use_hole_tolerant = True
-        intersection_mod.object = bpy.data.objects[f'{wall.name}-duplicate']
+        intersection_mod.object = parameters.wall_set.wall_duplicate
 
         # Carve the crack out of the wall
+        wall = parameters.wall_set.wall
         wall.modifiers['Boolean'].object = crack
 
         # Move camera to object

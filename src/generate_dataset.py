@@ -5,14 +5,12 @@ import time
 
 from dataset_generation.crack_generator import CrackGenerator
 from dataset_generation.empty_label_error import EmptyLabelError
-from dataset_generation.models import SurfaceParameters
 from dataset_generation.operations import SceneClearer, MaterialLoader, SceneParameterGenerator, \
-    CrackParametersGenerator
+    CrackParametersGenerator, WallSetLoader
 from dataset_generation.scene_generator import SceneGenerator
-from dataset_generation.surface_map_generator import SurfaceMapGenerator
 
 DUMP_SURFACE = False
-MAX_RETRIES = 3
+MAX_RETRIES = 5
 
 
 def main(dataset_size: int = 1):
@@ -25,30 +23,18 @@ def main(dataset_size: int = 1):
 
     # Setup of constants
     scene_clearer = SceneClearer()
-    materials = (MaterialLoader())()
-    surface_generator = SurfaceMapGenerator()
     crack_generator = CrackGenerator()
     scene_generator = SceneGenerator()
     crack_parameters_generator = CrackParametersGenerator()
     scene_parameters_generator = SceneParameterGenerator()
 
-    wall = bpy.data.objects['Wall']
-    wall = wall.evaluated_get(bpy.context.evaluated_depsgraph_get())
-    wall_surface = surface_generator([wall])
-
-    surface_parameters = SurfaceParameters(
-        wall.modifiers['GeometryNodes']['Input_15'],
-        wall.modifiers['GeometryNodes']['Input_16'],
-        wall.modifiers['GeometryNodes']['Input_6'],
-        wall.modifiers['GeometryNodes']['Input_7'],
-        wall_surface
-    )
+    materials = (MaterialLoader())()
+    wall_sets = (WallSetLoader())()
 
     if DUMP_SURFACE:
         with open('surface_parameters.dump', 'wb') as surface_file:
-            pickle.dump(surface_parameters, surface_file)
+            pickle.dump(wall_sets[0].surface_parameters, surface_file)
 
-    wall = bpy.data.objects['Wall']  # Return to unevaluated version
     camera = bpy.data.objects['Camera']
 
     """
@@ -64,13 +50,13 @@ def main(dataset_size: int = 1):
         try:
             file_name = f'crack-{idx}'
             scene_clearer()
+            scene_parameters = scene_parameters_generator(file_name, materials, wall_sets)
             crack = crack_generator(
-                crack_parameters_generator(surface_parameters),
-                surface_parameters,
+                crack_parameters_generator(scene_parameters.wall_set.surface_parameters),
+                scene_parameters.wall_set.surface_parameters,
                 file_name + '.obj'
             )
-            scene_parameters = scene_parameters_generator(file_name, materials)
-            scene_generator(wall, camera, crack, scene_parameters)
+            scene_generator(camera, crack, scene_parameters)
             retry_count = 0
             idx += 1
         except EmptyLabelError:

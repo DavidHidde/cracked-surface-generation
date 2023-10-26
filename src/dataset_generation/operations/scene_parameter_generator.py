@@ -1,6 +1,6 @@
 import numpy as np
 
-from dataset_generation.models import SceneParameters, MaterialsContainer
+from dataset_generation.models import SceneParameters, MaterialsContainer, WallSet
 
 MIN_ANGLE = -np.pi / 16
 MAX_ANGLE = np.pi / 16
@@ -20,7 +20,8 @@ class SceneParameterGenerator:
     def __call__(
             self,
             output_file_name: str,
-            materials: MaterialsContainer
+            materials: MaterialsContainer,
+            wall_sets: list[WallSet]
     ) -> SceneParameters:
         """
         Generate a new set of parameters.
@@ -50,6 +51,7 @@ class SceneParameterGenerator:
             camera_translation[2] *= -1
 
         return SceneParameters(
+            np.random.choice(wall_sets),
             np.random.choice(materials.brick_materials),
             np.random.choice(materials.mortar_materials),
             np.random.choice(materials.crack_materials),

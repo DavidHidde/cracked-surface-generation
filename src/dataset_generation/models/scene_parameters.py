@@ -2,6 +2,8 @@ from dataclasses import dataclass
 
 import bpy
 
+from .wall_set import WallSet
+
 
 @dataclass
 class SceneParameters:
@@ -9,6 +11,7 @@ class SceneParameters:
     Parameters for the current scene.
     These should be randomly assigned (with reason).
     """
+    wall_set: WallSet
 
     brick_material: bpy.types.Material
     mortar_material: bpy.types.Material
