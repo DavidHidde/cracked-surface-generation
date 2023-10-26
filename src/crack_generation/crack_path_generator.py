@@ -9,9 +9,11 @@ from dataset_generation.models import SurfaceParameters, SurfaceMap
 
 MIN_DISTANCE = 5
 
-MIN_WIDTH = 1.
+MIN_WIDTH = 2.
 MAX_WIDTH_GROW_FACTOR = 0.05
 MAX_WIDTH_GROW = 0.2
+
+MIN_DISTANCE_IMRPOVEMENT = 0.1
 
 
 def increment_by_chance(variable: float, increment: float, chance: float) -> float:
@@ -143,5 +145,14 @@ class CrackPathGenerator:
             angle = np.arctan2(vector_diff[1], vector_diff[0])
             top_line[idx, :], bot_line[idx, :] = determine_width_points(center, width, angle)
             idx += 1
+
+        # Filter out non-increasing points
+        center_line = (top_line + bot_line) / 2
+        distances = np.linalg.norm(center_line[:, :] - center_line[0, :], axis=1)
+        gradient_distance = np.gradient(distances)
+
+        filtered_points = gradient_distance > MIN_DISTANCE_IMRPOVEMENT
+        top_line = top_line[filtered_points, :]
+        bot_line = bot_line[filtered_points, :]
 
         return CrackPath(top_line, bot_line)

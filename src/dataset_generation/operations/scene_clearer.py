@@ -1,6 +1,9 @@
 import bpy
 
-SAFE_COLLECTION: str = 'Base assets'
+SAFE_COLLECTIONS: list[str] = [
+    'Base assets',
+    'Walls'
+]
 
 
 class SceneClearer:
@@ -13,7 +16,7 @@ class SceneClearer:
         Clear objects from the scene aside from the safe collection
         """
         for collection in bpy.data.collections:
-            if collection.name != SAFE_COLLECTION:
+            if collection.name not in SAFE_COLLECTIONS:
                 for obj in collection.objects:
                     bpy.data.objects.remove(obj, do_unlink=True)
                 bpy.data.collections.remove(collection, do_unlink=True)

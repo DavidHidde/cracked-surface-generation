@@ -37,6 +37,7 @@ START_STEPS = 0
 END_STEPS = 0
 DEPTH_RESOLUTION = 0
 STEP_SIZE = 2.
+L2_FILTER = 0.1
 GRADIENT_INFLUENCE = 0.5
 WIDTH_PERMUTATION_CHANCE = 0.1
 BREAKTHROUGH_CHANCE = 0.1
@@ -63,6 +64,7 @@ line, = ax.plot(x, y, color='red')
 ax.set_xlabel('x')
 ax.set_ylabel('y')
 ax.imshow(surface_parameters.surface_map.mask, cmap='gray')
+ax.invert_yaxis()  # Align with 3D model
 
 ui = PlaygroundInterface(
     'Crack parameter playground',

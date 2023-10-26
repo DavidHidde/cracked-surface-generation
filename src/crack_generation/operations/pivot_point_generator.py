@@ -47,6 +47,6 @@ class PivotPointGenerator:
         displacement = np.random.triangular(*parameters[parameters_idx])
         displacement_vector = [min(displacement, unit_width), unit_height - max(displacement - unit_width, 0)]
         displacement_vector = np.rint(displacement_vector / brick_projected_size) * brick_projected_size
-        new_position = position + np.array([direction, 1]) * displacement_vector.astype(int)
+        new_position = position + np.array([direction, -1]) * displacement_vector.astype(int)
 
         return self.__point_decollider(new_position, surface_map)

@@ -48,8 +48,8 @@ def determine_start_point(
     # Keep randoming until we find a value where we can actually start
     while not collision_checker.within_bounds(position) or collision_checker.in_object(position):
         position = np.random.randint(
-            [columns_start, 0],
-            [columns_end, num_rows * ROW_SEARCH_SPACE_PERCENTILE],
+            [columns_start, num_rows * (1 - ROW_SEARCH_SPACE_PERCENTILE)],
+            [columns_end, num_rows - 1],
             size=(2,)
         )
         position = decollider(position, surface_map)
