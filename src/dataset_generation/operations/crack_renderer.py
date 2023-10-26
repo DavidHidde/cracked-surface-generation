@@ -2,7 +2,6 @@ import os
 
 import bpy
 
-from . import MaterialLoader
 from .label_thresholder import LabelThresholder
 
 

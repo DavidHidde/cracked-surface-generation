@@ -4,6 +4,7 @@ import bpy
 import time
 
 from dataset_generation.crack_generator import CrackGenerator
+from dataset_generation.empty_label_error import EmptyLabelError
 from dataset_generation.models import SurfaceParameters
 from dataset_generation.operations import SceneClearer, MaterialLoader, SceneParameterGenerator, \
     CrackParametersGenerator
@@ -11,6 +12,7 @@ from dataset_generation.scene_generator import SceneGenerator
 from dataset_generation.surface_map_generator import SurfaceMapGenerator
 
 DUMP_SURFACE = False
+MAX_RETRIES = 3
 
 
 def main(dataset_size: int = 1):
@@ -56,12 +58,31 @@ def main(dataset_size: int = 1):
         - Generate new scene parameters.
         - Generate a new scene and render.
     """
-    for idx in range(dataset_size):
-        file_name = f'crack-{idx}'
-        scene_clearer()
-        crack = crack_generator(crack_parameters_generator(surface_parameters), surface_parameters, file_name + '.obj')
-        scene_parameters = scene_parameters_generator(file_name, materials)
-        scene_generator(wall, camera, crack, scene_parameters)
+    idx = 0
+    retry_count = 0
+    while idx < dataset_size and retry_count < MAX_RETRIES:
+        try:
+            file_name = f'crack-{idx}'
+            scene_clearer()
+            crack = crack_generator(
+                crack_parameters_generator(surface_parameters),
+                surface_parameters,
+                file_name + '.obj'
+            )
+            scene_parameters = scene_parameters_generator(file_name, materials)
+            scene_generator(wall, camera, crack, scene_parameters)
+            retry_count = 0
+            idx += 1
+        except EmptyLabelError:
+            print('- Warning: Label was empty, retrying...  -')
+            retry_count += 1
+        except Exception as e:
+            print(f'- Error: {e} -')
+            print('- Warning: Something went wrong, retrying... -')
+            retry_count += 1
+
+    if retry_count >= MAX_RETRIES:
+        print('- Rendering aborted, out of retries -')
 
     print(f'-- Rendering done after {round((time.time() - start_time) / 60, 2)} minutes --')
 
