@@ -10,8 +10,7 @@ class MaterialsContainer:
     The goal is to ensure that we only load these once and reuse them throughout the generation.
     """
     
-    brick_materials: list[bpy.types.Material]
-    mortar_materials: list[bpy.types.Material]
+    wall_materials: list[bpy.types.Material]
     crack_materials: list[bpy.types.Material]
     
     world_textures: list[bpy.types.Image]

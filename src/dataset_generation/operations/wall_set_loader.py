@@ -31,7 +31,6 @@ class WallSetLoader:
                 wall.modifiers['GeometryNodes']['Input_15'],
                 wall.modifiers['GeometryNodes']['Input_16'],
                 wall.modifiers['GeometryNodes']['Input_6'],
-                wall.modifiers['GeometryNodes']['Input_7'],
                 wall_surface
             )
 

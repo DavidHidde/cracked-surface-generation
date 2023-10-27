@@ -19,14 +19,11 @@ def determine_width(
         crack_parameters: CrackParameters
 ) -> float:
     """
-    Determine the width at a position based on the requested width and the 
+    Determine the width at a position based on the requested width and the actual max width
     """
-    max_width = surface_parameters.mortar_height * surface_parameters.surface_map.grid_factor
-    # Change to mortar width is the crack starts horizontal
-    if 0.25 * np.pi < angle < 0.75 * np.pi or -0.75 * np.pi < angle < -0.25 * np.pi:
-        max_width = surface_parameters.mortar_width * surface_parameters.surface_map.grid_factor
+    max_width = surface_parameters.mortar_size * surface_parameters.surface_map.grid_factor
 
-    return min(max_width, crack_parameters.width) - 1
+    return min(max_width, crack_parameters.width)
 
 
 def determine_start_point(

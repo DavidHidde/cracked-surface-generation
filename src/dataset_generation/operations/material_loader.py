@@ -2,13 +2,8 @@ import bpy
 
 from dataset_generation.models import MaterialsContainer
 
-BRICK_MATERIALS = [
-    'Brick - red',
-    'Brick - gray'
-]
-
-MORTAR_MATERIALS = [
-    'Mortar - white'
+WALL_MATERIALS = [
+    'Red brick - white mortar'
 ]
 
 CRACK_MATERIALS = [
@@ -35,8 +30,7 @@ class MaterialLoader:
         """
 
         return MaterialsContainer(
-            [bpy.data.materials[material_name] for material_name in BRICK_MATERIALS],
-            [bpy.data.materials[material_name] for material_name in MORTAR_MATERIALS],
+            [bpy.data.materials[material_name] for material_name in WALL_MATERIALS],
             [bpy.data.materials[material_name] for material_name in CRACK_MATERIALS],
             [bpy.data.images[image_name] for image_name in WORLD_TEXTURES]
         )

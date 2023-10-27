@@ -52,8 +52,7 @@ class SceneParameterGenerator:
 
         return SceneParameters(
             np.random.choice(wall_sets),
-            np.random.choice(materials.brick_materials),
-            np.random.choice(materials.mortar_materials),
+            np.random.choice(materials.wall_materials),
             np.random.choice(materials.crack_materials),
             np.random.choice(materials.world_textures),
             tuple(camera_translation),

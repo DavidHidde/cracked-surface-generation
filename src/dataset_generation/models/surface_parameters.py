@@ -12,8 +12,7 @@ class SurfaceParameters:
     brick_width: float
     brick_height: float
     
-    mortar_width: float
-    mortar_height: float
+    mortar_size: float
     
     surface_map: SurfaceMap
     

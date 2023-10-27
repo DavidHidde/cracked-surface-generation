@@ -48,8 +48,7 @@ class SceneGenerator:
 
         # Set world and object materials
         crack_marker.data.materials.append(parameters.crack_material)
-        wall.modifiers['GeometryNodes']['Input_13'] = parameters.brick_material
-        wall.modifiers['GeometryNodes']['Input_14'] = parameters.mortar_material
+        wall.modifiers['GeometryNodes']['Input_13'] = parameters.wall_material
         bpy.data.worlds['World'].node_tree.nodes['Environment Texture'].image = parameters.world_texture
 
         # Start rendering

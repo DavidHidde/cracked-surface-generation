@@ -13,8 +13,7 @@ class SceneParameters:
     """
     wall_set: WallSet
 
-    brick_material: bpy.types.Material
-    mortar_material: bpy.types.Material
+    wall_material: bpy.types.Material
     crack_material: bpy.types.Material
 
     world_texture: bpy.types.Image
