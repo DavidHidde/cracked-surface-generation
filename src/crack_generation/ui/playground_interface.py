@@ -149,6 +149,12 @@ class PlaygroundInterface:
                 'to': 1.,
                 'resolution': 0.01
             },
+            'smoothing': {
+                'label': 'Smoothing',
+                'from_': 0,
+                'to': 10,
+                'resolution': 1
+            },
         }
 
         # Create subframe

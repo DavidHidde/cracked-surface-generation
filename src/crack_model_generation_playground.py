@@ -57,6 +57,7 @@ GRADIENT_INFLUENCE = 0.5
 L2_FILTER = 0.1
 WIDTH_PERMUTATION_CHANCE = 0.1
 BREAKTHROUGH_CHANCE = 0.1
+SMOOTHING = 0
 
 # Initial plot
 parameters = CrackParameters(
@@ -68,7 +69,8 @@ parameters = CrackParameters(
     STEP_SIZE,
     GRADIENT_INFLUENCE,
     WIDTH_PERMUTATION_CHANCE,
-    BREAKTHROUGH_CHANCE
+    BREAKTHROUGH_CHANCE,
+    SMOOTHING
 )
 generator = CrackModelGenerator()
 model = generator(parameters, surface_parameters)

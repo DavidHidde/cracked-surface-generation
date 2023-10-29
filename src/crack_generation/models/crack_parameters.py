@@ -21,3 +21,5 @@ class CrackParameters:
 
     width_update_chance: float
     breakthrough_chance: float
+
+    smoothing: int

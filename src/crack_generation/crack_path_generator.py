@@ -1,6 +1,7 @@
 import random
 
 import numpy as np
+from scipy.ndimage import gaussian_filter1d
 
 from crack_generation.crack_trajectory_generator import CrackTrajectoryGenerator
 from crack_generation.models import CrackParameters, CrackPath
@@ -154,5 +155,14 @@ class CrackPathGenerator:
         filtered_points = gradient_distance > MIN_DISTANCE_IMRPOVEMENT
         top_line = top_line[filtered_points, :]
         bot_line = bot_line[filtered_points, :]
+
+        # Smooth path through 1D gaussian filter convolution
+        smoothing = crack_parameters.smoothing
+        if smoothing > 0:
+            top_line[:, 0] = gaussian_filter1d(top_line[:, 0], 1., mode='nearest', radius=smoothing)
+            top_line[:, 1] = gaussian_filter1d(top_line[:, 1], 1., mode='nearest', radius=smoothing)
+
+            bot_line[:, 0] = gaussian_filter1d(bot_line[:, 0], 1., mode='nearest', radius=smoothing)
+            bot_line[:, 1] = gaussian_filter1d(bot_line[:, 1], 1., mode='nearest', radius=smoothing)
 
         return CrackPath(top_line, bot_line)

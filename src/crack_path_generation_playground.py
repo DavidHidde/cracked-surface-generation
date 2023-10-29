@@ -41,6 +41,7 @@ L2_FILTER = 0.1
 GRADIENT_INFLUENCE = 0.5
 WIDTH_PERMUTATION_CHANCE = 0.1
 BREAKTHROUGH_CHANCE = 0.1
+SMOOTHING = 0
 
 # Setup plot
 fig, ax = plt.subplots(figsize=(16, 5), dpi=100)
@@ -56,7 +57,8 @@ parameters = CrackParameters(
     STEP_SIZE,
     GRADIENT_INFLUENCE,
     WIDTH_PERMUTATION_CHANCE,
-    BREAKTHROUGH_CHANCE
+    BREAKTHROUGH_CHANCE,
+    SMOOTHING
 )
 path = crack_generator(parameters, surface_parameters)
 x, y = create_single_line(path)

@@ -13,7 +13,7 @@ WIDTH_PERMUTATION_CHANCE = 0.1
 BREAKTHROUGH_CHANCE = 0.1
 
 MIN_WIDTH = 3.
-
+SMOOTHING = 1
 
 class CrackParametersGenerator:
     """
@@ -35,5 +35,6 @@ class CrackParametersGenerator:
             STEP_SIZE,
             GRADIENT_INFLUENCE,
             WIDTH_PERMUTATION_CHANCE,
-            BREAKTHROUGH_CHANCE
+            BREAKTHROUGH_CHANCE,
+            SMOOTHING
         )

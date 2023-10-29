@@ -9,7 +9,7 @@ from dataset_generation.operations import SceneClearer, MaterialLoader, ScenePar
     CrackParametersGenerator, WallSetLoader
 from dataset_generation.scene_generator import SceneGenerator
 
-DUMP_SURFACE = False
+DUMP_SURFACE = True
 MAX_RETRIES = 5
 
 
