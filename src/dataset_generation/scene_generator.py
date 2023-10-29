@@ -41,7 +41,8 @@ class SceneGenerator:
 
         # Carve the crack out of the wall
         wall = parameters.wall_set.wall
-        wall.modifiers['Boolean'].object = crack
+        wall.modifiers['GeometryNodes']['Input_20'] = crack
+        wall.update_tag()
 
         # Move camera to object
         self.__camera_aligner(camera, crack, parameters.camera_rotation, parameters.camera_translation)

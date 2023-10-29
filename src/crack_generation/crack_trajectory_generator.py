@@ -35,7 +35,7 @@ def determine_start_point(
     """
     Determine the starting point on the grid. This should be somewhere along the top.
     """
-    num_rows, num_columns = surface_map.surface.shape
+    num_rows, num_columns = surface_map.mask.shape
     position = np.array([-1, -1], int)
 
     # Start on either the left or right side depending on the direction

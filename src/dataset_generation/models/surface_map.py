@@ -11,7 +11,6 @@ class SurfaceMap:
     Map of a surface, where the the pixel intensities are the height values in the y-dimension.
     """
 
-    surface: np.array
     mask: np.array  # Boolean array marking objects in the surface as False
 
     distance_transform: np.array    # Distance transform of the mask

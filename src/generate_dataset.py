@@ -9,7 +9,7 @@ from dataset_generation.operations import SceneClearer, MaterialLoader, ScenePar
     CrackParametersGenerator, WallSetLoader
 from dataset_generation.scene_generator import SceneGenerator
 
-DUMP_SURFACE = True
+DUMP_SURFACE = False
 MAX_RETRIES = 5
 
 
@@ -28,6 +28,7 @@ def main(dataset_size: int = 1):
     crack_parameters_generator = CrackParametersGenerator()
     scene_parameters_generator = SceneParameterGenerator()
 
+    scene_clearer()  # Clear scene before determining surfaces
     materials = (MaterialLoader())()
     wall_sets = (WallSetLoader())()
 

@@ -52,8 +52,8 @@ class CrackGenerator:
         apply_transformations(crack_obj)
         crack_obj.evaluated_get(bpy.context.evaluated_depsgraph_get())
 
-        # Move 90% of the crack into the wall
-        crack_obj.location += Vector([0., 0.9 * crack_obj.dimensions.y, 0.])
+        # Move the crack into the wall
+        crack_obj.location += Vector([0., 0.6 * crack_obj.dimensions.y, 0.])
         apply_transformations(crack_obj)
         crack_obj.evaluated_get(bpy.context.evaluated_depsgraph_get())
 

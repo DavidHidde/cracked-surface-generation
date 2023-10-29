@@ -3,7 +3,7 @@ import random
 from crack_generation.models import CrackParameters
 from dataset_generation.models import SurfaceParameters
 
-DEPTH = 30
+DEPTH = 100
 START_STEPS = 0
 END_STEPS = 2
 DEPTH_RESOLUTION = 1
@@ -12,8 +12,9 @@ GRADIENT_INFLUENCE = 0.5
 WIDTH_PERMUTATION_CHANCE = 0.1
 BREAKTHROUGH_CHANCE = 0.1
 
-MIN_WIDTH = 3.
+MIN_WIDTH = 4.
 SMOOTHING = 1
+
 
 class CrackParametersGenerator:
     """
@@ -28,7 +29,7 @@ class CrackParametersGenerator:
         max_width = surface_parameters.mortar_size * surface_parameters.surface_map.grid_factor
         return CrackParameters(
             DEPTH,
-            max(random.random() * max_width, MIN_WIDTH),
+            MIN_WIDTH + random.random() * (max_width - MIN_WIDTH),
             START_STEPS,
             END_STEPS,
             DEPTH_RESOLUTION,

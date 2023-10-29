@@ -20,8 +20,8 @@ class CollisionChecker:
         """
         Check if a position iw within the borders of the surface
         """
-        return 0 < position[0] < self.__surface_map.surface.shape[1] - 1 and \
-            0 < position[1] < self.__surface_map.surface.shape[0] - 1
+        return 0 < position[0] < self.__surface_map.mask.shape[1] - 1 and \
+            0 < position[1] < self.__surface_map.mask.shape[0] - 1
 
     def in_object(self, position: np.array) -> bool:
         """
