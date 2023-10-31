@@ -3,7 +3,10 @@ import bpy
 from dataset_generation.models import MaterialsContainer
 
 WALL_MATERIALS = [
-    'Red brick - white mortar'
+    'Gray brick - white mortar',
+    'Red brick - white mortar',
+    'Red brick - brown mortar',
+    'Yellow brick - gray mortar'
 ]
 
 CRACK_MATERIALS = [

@@ -4,7 +4,8 @@ from dataset_generation.models import WallSet, SurfaceParameters
 from dataset_generation.surface_map_generator import SurfaceMapGenerator
 
 WALLS = [
-    'Base wall'
+    'Base wall',
+    'Door wall'
 ]
 
 

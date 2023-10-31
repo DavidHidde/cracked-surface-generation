@@ -47,7 +47,7 @@ def main(dataset_size: int = 1):
     """
     idx = 0
     retry_count = 0
-    while idx < dataset_size and retry_count < MAX_RETRIES:
+    while idx < dataset_size and retry_count < MAX_RETRIES + 1:
         try:
             file_name = f'crack-{idx}'
             scene_clearer()

@@ -7,20 +7,20 @@ import numpy as np
 from dataset_generation.models import BoundingBox, SurfaceMap
 
 
-def calculate_bounding_box(object: bpy.types.Object) -> BoundingBox:
+def calculate_bounding_box(obj: bpy.types.Object) -> BoundingBox:
     """
     Get the bounding box in world space.
     Assumes the location of the object to be the center.
     """
     center = np.array([
-        object.location.x,
-        object.location.y,
-        object.location.z,
+        obj.location.x,
+        obj.location.y,
+        obj.location.z,
     ])
     dimensions = np.array([
-        object.dimensions.x,
-        object.dimensions.y,
-        object.dimensions.z
+        obj.dimensions.x,
+        obj.dimensions.y,
+        obj.dimensions.z
     ])
 
     return BoundingBox(

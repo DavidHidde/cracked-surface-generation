@@ -2,7 +2,9 @@ import bpy
 
 SAFE_COLLECTIONS: list[str] = [
     'Base assets',
-    'Walls'
+    'Walls',
+    'Base assets 2',
+    'Walls 2'
 ]
 
 
