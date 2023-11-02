@@ -39,13 +39,12 @@ class SurfaceMapGenerator:
     Assumes the object to be positioned along the x-axis
     """
 
-    def __call__(self, wall: bpy.types.Object) -> SurfaceMap:
+    def __call__(self, mortar: bpy.types.Object) -> SurfaceMap:
         """
         Generate the surface map of an object.
         Takes x=x and z=z and disregards the y-dimension.
         """
-
-        bounding_box = calculate_bounding_box(wall)
+        bounding_box = calculate_bounding_box(mortar)
 
         # Setup the grid - We want millimeter precision and Blender dimensions are in meters, so we multiply by 1000
         grid_factor = 1000
@@ -57,17 +56,10 @@ class SurfaceMapGenerator:
             np.uint8
         )
 
-        # Only take the mortar
-        wall.modifiers['GeometryNodes']['Input_21'] = False
-        wall.update_tag()
-        evaluated_wall = wall.evaluated_get(bpy.context.evaluated_depsgraph_get())
-        wall.modifiers['GeometryNodes']['Input_21'] = True
-        wall.update_tag()
-
         # Draw faces
-        mesh = evaluated_wall.data
+        mesh = mortar.data
         faces = [face for face in mesh.polygons if face.normal.y < 0.2]
-        face_verts = [[evaluated_wall.matrix_world @ mesh.vertices[idx].co for idx in face.vertices] for face in faces]
+        face_verts = [[mortar.matrix_world @ mesh.vertices[idx].co for idx in face.vertices] for face in faces]
         verts = [np.array([
             [
                 round((vert.x - bounding_box.min_vertex[0]) * grid_factor),

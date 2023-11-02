@@ -8,8 +8,8 @@ MAX_ANGLE = np.pi / 16
 MIN_XZ_DISTANCE = -0.2
 MAX_XZ_DISTANCE = 0.2
 
-MIN_Y_DISTANCE = -1.2
-MAX_Y_DISTANCE = -0.8
+MIN_Y_DISTANCE = -1.0
+MAX_Y_DISTANCE = -0.6
 
 
 class SceneParameterGenerator:

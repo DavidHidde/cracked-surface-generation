@@ -16,7 +16,7 @@ MAX_WIDTH_GROW = 0.2
 
 MIN_DISTANCE_IMRPOVEMENT = 0.1
 
-MIN_DISTANCE_TO_MORTAR = 75
+MIN_DISTANCE_TO_MORTAR = 100
 
 def increment_by_chance(variable: float, increment: float, chance: float) -> float:
     """
@@ -62,7 +62,6 @@ def generate_path(
     # Keep going until the crack becomes to small, reaches the boundary or reaches the end point
     while width >= MIN_WIDTH and \
             collision_checker.within_bounds(center) and \
-            surface_map.inverse_distance_transform[center_int[1], center_int[0]] < MIN_DISTANCE_TO_MORTAR and \
             np.linalg.norm(end_position - center) > MIN_DISTANCE:
         gradient_angle = surface_map.gradient_angles[center_int[1], center_int[0]]
         gradient_vector = np.array([np.cos(gradient_angle), np.sin(gradient_angle)])

@@ -12,5 +12,6 @@ class WallSet:
     """
     
     wall: bpy.types.Object
-    wall_duplicate: bpy.types.Object
+    mortar: bpy.types.Object
+    other_objects: list[bpy.types.Object]
     surface_parameters: SurfaceParameters

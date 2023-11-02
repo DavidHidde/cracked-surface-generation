@@ -3,10 +3,11 @@ import numpy as np
 
 from dataset_generation.empty_label_error import EmptyLabelError
 
-MIN_RGB_COLOR = (120, 120, 120)
+MIN_RGB_COLOR = (75, 75, 75)
 MAX_RGB_COLOR = (255, 255, 255)
 
 MIN_ACTIVE_PIXELS = 5
+
 
 class LabelThresholder:
     """

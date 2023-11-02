@@ -10,7 +10,7 @@ from crack_generation.operations import ObjFileExporter
 from dataset_generation.models import SurfaceParameters
 from dataset_generation.operations.obj import ObjImporter
 
-CRACK_WALL_DISPLACEMENT_PERCENT = 0.6
+CRACK_WALL_DISPLACEMENT_PERCENT = 0.5
 
 
 def apply_transformations(crack: bpy.types.Object):
@@ -68,5 +68,10 @@ class CrackGenerator:
         crack_obj.location += Vector([0., CRACK_WALL_DISPLACEMENT_PERCENT * crack_obj.dimensions.y, 0.])
         apply_transformations(crack_obj)
         crack_obj.evaluated_get(bpy.context.evaluated_depsgraph_get())
+
+        # Create the crack intersection modifier
+        intersection_mod = crack_obj.modifiers.new('crack_intersect', 'BOOLEAN')
+        intersection_mod.operation = 'INTERSECT'
+        intersection_mod.use_self = True
 
         return crack_obj
