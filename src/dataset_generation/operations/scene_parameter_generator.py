@@ -11,6 +11,8 @@ MAX_XZ_DISTANCE = 0.2
 MIN_Y_DISTANCE = -1.0
 MAX_Y_DISTANCE = -0.6
 
+USE_PATCHES = True
+
 
 class SceneParameterGenerator:
     """
@@ -42,13 +44,14 @@ class SceneParameterGenerator:
             MIN_XZ_DISTANCE + random_state[5] * xz_distance_diff
         ]
 
+        if USE_PATCHES:
+            camera_translation[1] = -2
+
         # Make sure the camera points towards the crack
-        if camera_rotation[0] < 0 and camera_translation[0] < 0:
-            camera_translation[0] *= -1
-        if camera_rotation[1] < 0 and camera_translation[1] < 0:
-            camera_translation[1] *= -1
-        if camera_rotation[2] < 0 and camera_translation[2] < 0:
-            camera_translation[2] *= -1
+        if camera_rotation[0] < 0 and camera_translation[2] < 0:
+            camera_rotation[0] *= -1
+        if camera_rotation[2] < 0 and camera_translation[0] < 0:
+            camera_rotation[2] *= -1
 
         return SceneParameters(
             np.random.choice(wall_sets),

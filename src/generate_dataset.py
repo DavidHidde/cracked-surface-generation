@@ -6,10 +6,11 @@ import time
 from dataset_generation.crack_generator import CrackGenerator
 from dataset_generation.empty_label_error import EmptyLabelError
 from dataset_generation.operations import SceneClearer, MaterialLoader, SceneParameterGenerator, \
-    CrackParametersGenerator, WallSetLoader
+    CrackParametersGenerator, WallSetLoader, PatchGenerator
 from dataset_generation.scene_generator import SceneGenerator
 
 DUMP_SURFACE = False
+PATCHES_PER_DIMENSION = 5
 MAX_RETRIES = 5
 
 
@@ -23,6 +24,7 @@ def main(dataset_size: int = 1):
 
     # Setup of constants
     scene_clearer = SceneClearer()
+    patch_generator = PatchGenerator()
     crack_generator = CrackGenerator()
     scene_generator = SceneGenerator()
     crack_parameters_generator = CrackParametersGenerator()
@@ -38,12 +40,16 @@ def main(dataset_size: int = 1):
 
     camera = bpy.data.objects['Camera']
 
+    bpy.context.scene.render.resolution_x = max(PATCHES_PER_DIMENSION, 1) * 224
+    bpy.context.scene.render.resolution_y = max(PATCHES_PER_DIMENSION, 1) * 224
+
     """
     Main generation loop:
         - Clear the scene.
         - Generate a new crack.
         - Generate new scene parameters.
         - Generate a new scene and render.
+        - Divide into patches if needed.
     """
     idx = 0
     retry_count = 0
@@ -58,8 +64,13 @@ def main(dataset_size: int = 1):
                 file_name + '.obj'
             )
             scene_generator(camera, crack, scene_parameters)
+
+            if PATCHES_PER_DIMENSION > 1:
+                idx += patch_generator(file_name, PATCHES_PER_DIMENSION)
+            else:
+                idx += 1
+
             retry_count = 0
-            idx += 1
         except EmptyLabelError:
             print('- Warning: Label was empty, retrying...  -')
             retry_count += 1
