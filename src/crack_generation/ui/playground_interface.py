@@ -107,18 +107,6 @@ class PlaygroundInterface:
                 'to': 15.,
                 'resolution': 1.
             },
-            'length': {
-                'label': 'Length',
-                'from_': 0,
-                'to': 1000,
-                'resolution': 1
-            },
-            'variance': {
-                'label': 'Variance',
-                'from_': 0.,
-                'to': 2.0,
-                'resolution': 0.01
-            },
             'start_pointiness': {
                 'label': 'Start pointiness',
                 'from_': 0,
@@ -137,14 +125,14 @@ class PlaygroundInterface:
                 'to': 10,
                 'resolution': 1
             },
-            'allowed_path_overlap': {
-                'label': 'Allowed path overlap percentage',
-                'from_': 0,
-                'to': 1,
-                'resolution': 0.01
+            'step_size': {
+                'label': 'Step size',
+                'from_': 0.1,
+                'to': 5.,
+                'resolution': 1
             },
-            'angle_update_chance': {
-                'label': 'Angle update chance',
+            'gradient_influence': {
+                'label': 'Gradient influence',
                 'from_': 0.,
                 'to': 1.,
                 'resolution': 0.01
@@ -160,6 +148,12 @@ class PlaygroundInterface:
                 'from_': 0.,
                 'to': 1.,
                 'resolution': 0.01
+            },
+            'smoothing': {
+                'label': 'Smoothing',
+                'from_': 0,
+                'to': 10,
+                'resolution': 1
             },
         }
 

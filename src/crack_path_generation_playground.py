@@ -1,18 +1,25 @@
 import pickle
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.axes import Axes
-from crack_generation.models import CrackParameters
+from crack_generation.models import CrackParameters, CrackPath
 from crack_generation import CrackPathGenerator
 from crack_generation.ui import PlaygroundInterface
-from crack_generation.util import create_single_line
+
+
+def create_single_line(path: CrackPath) -> tuple[np.array, np.array]:
+    """
+    Glue top and bot lines together into a single line and split into x and y
+    """
+    line = np.append(np.concatenate([path.top_line, np.flip(path.bot_line, 0)]), [path.top_line[0, :]], 0)
+    return line[:, 0], line[:, 1]
 
 
 # Update plot
 def plot_path(parameters: CrackParameters, ax: Axes):
     crack_generator = CrackPathGenerator()
-    path = crack_generator(parameters, surface_map)
+    path = crack_generator(parameters, surface_parameters)
     x, y = create_single_line(path)
     line = ax.get_lines()[0]
     line.set_xdata(x)
@@ -20,19 +27,21 @@ def plot_path(parameters: CrackParameters, ax: Axes):
 
 
 # Load surface file
-with open('resources/surface.dump', 'rb') as surface_dump:
-    surface_map = pickle.load(surface_dump)
+with open('resources/surface_parameters.dump', 'rb') as surface_dump:
+    surface_parameters = pickle.load(surface_dump)
 
 # Initial parameters
-VARIANCE = 0.1
-LENGTH = 100
+DEPTH = 0
 INITIAL_WIDTH = 5
 START_STEPS = 0
 END_STEPS = 0
-ALLOWED_OVERLAP = 1.
-ANGLE_PERMUTATION_CHANCE = 0.1
+DEPTH_RESOLUTION = 0
+STEP_SIZE = 2.
+L2_FILTER = 0.1
+GRADIENT_INFLUENCE = 0.5
 WIDTH_PERMUTATION_CHANCE = 0.1
 BREAKTHROUGH_CHANCE = 0.1
+SMOOTHING = 0
 
 # Setup plot
 fig, ax = plt.subplots(figsize=(16, 5), dpi=100)
@@ -40,24 +49,24 @@ fig, ax = plt.subplots(figsize=(16, 5), dpi=100)
 # Initial plot
 crack_generator = CrackPathGenerator()
 parameters = CrackParameters(
-    0,
+    DEPTH,
     INITIAL_WIDTH,
-    LENGTH,
-    VARIANCE,
     START_STEPS,
     END_STEPS,
-    0,
-    ALLOWED_OVERLAP,
-    ANGLE_PERMUTATION_CHANCE,
+    DEPTH_RESOLUTION,
+    STEP_SIZE,
+    GRADIENT_INFLUENCE,
     WIDTH_PERMUTATION_CHANCE,
-    BREAKTHROUGH_CHANCE
+    BREAKTHROUGH_CHANCE,
+    SMOOTHING
 )
-path = crack_generator(parameters, surface_map)
+path = crack_generator(parameters, surface_parameters)
 x, y = create_single_line(path)
 line, = ax.plot(x, y, color='red')
 ax.set_xlabel('x')
 ax.set_ylabel('y')
-ax.imshow(surface_map.surface, cmap='gray')
+ax.imshow(surface_parameters.surface_map.mask, cmap='gray')
+ax.invert_yaxis()  # Align with 3D model
 
 ui = PlaygroundInterface(
     'Crack parameter playground',

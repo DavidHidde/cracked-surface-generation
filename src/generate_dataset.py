@@ -1,50 +1,88 @@
 import pickle
 
 import bpy
+import time
 
-from crack_generation.models import CrackParameters
 from dataset_generation.crack_generator import CrackGenerator
-from dataset_generation.operations import SceneClearer, MaterialLoader
+from dataset_generation.empty_label_error import EmptyLabelError
+from dataset_generation.operations import SceneClearer, MaterialLoader, SceneParameterGenerator, \
+    CrackParametersGenerator, WallSetLoader, PatchGenerator
 from dataset_generation.scene_generator import SceneGenerator
-from dataset_generation.surface_map_generator import SurfaceMapGenerator
+
+DUMP_SURFACE = False
+PATCHES_PER_DIMENSION = 5
+MAX_RETRIES = 5
 
 
-def main():
+def main(dataset_size: int = 1):
     """
     Main entrypoint
     """
-    # Reset the scene
+
+    print('-- Starting rendering pipeline... --')
+    start_time = time.time()
+
+    # Setup of constants
     scene_clearer = SceneClearer()
-    scene_clearer()
+    patch_generator = PatchGenerator()
+    crack_generator = CrackGenerator()
+    scene_generator = SceneGenerator()
+    crack_parameters_generator = CrackParametersGenerator()
+    scene_parameters_generator = SceneParameterGenerator()
 
-    parameters = CrackParameters(
-        20.,
-        5.,
-        300,
-        0.1,
-        0,
-        5,
-        5,
-        1.,
-        0.2,
-        0.1,
-        0.1
-    )
+    scene_clearer()  # Clear scene before determining surfaces
     materials = (MaterialLoader())()
+    wall_sets = (WallSetLoader())()
 
-    # Identify base wall
-    if 'Wall' in bpy.data.objects:
-        wall = bpy.data.objects['Wall']
-        wall = wall.evaluated_get(bpy.context.evaluated_depsgraph_get())
-        surface_generator = SurfaceMapGenerator()
-        surface = surface_generator([wall])
-        crack_generator = CrackGenerator()
-        crack = crack_generator(parameters, surface, 'crack.obj')
-        scene_generator = SceneGenerator()
-        scene_generator(wall, bpy.data.objects['Camera'], crack, materials)
+    if DUMP_SURFACE:
+        with open('surface_parameters.dump', 'wb') as surface_file:
+            pickle.dump(wall_sets[0].surface_parameters, surface_file)
 
-        with open('surface.dump', 'wb') as surface_file:
-            pickle.dump(surface, surface_file)
+    camera = bpy.data.objects['Camera']
+
+    bpy.context.scene.render.resolution_x = max(PATCHES_PER_DIMENSION, 1) * 224
+    bpy.context.scene.render.resolution_y = max(PATCHES_PER_DIMENSION, 1) * 224
+
+    """
+    Main generation loop:
+        - Clear the scene.
+        - Generate a new crack.
+        - Generate new scene parameters.
+        - Generate a new scene and render.
+        - Divide into patches if needed.
+    """
+    idx = 0
+    retry_count = 0
+    while idx < dataset_size and retry_count < MAX_RETRIES + 1:
+        try:
+            file_name = f'crack-{idx}'
+            scene_clearer()
+            scene_parameters = scene_parameters_generator(file_name, materials, wall_sets)
+            crack = crack_generator(
+                crack_parameters_generator(scene_parameters.wall_set.surface_parameters),
+                scene_parameters.wall_set.surface_parameters,
+                file_name + '.obj'
+            )
+            scene_generator(camera, crack, scene_parameters)
+
+            if PATCHES_PER_DIMENSION > 1:
+                idx += patch_generator(file_name, PATCHES_PER_DIMENSION)
+            else:
+                idx += 1
+
+            retry_count = 0
+        except EmptyLabelError:
+            print('- Warning: Label was empty, retrying...  -')
+            retry_count += 1
+        except Exception as e:
+            print(f'- Error: {e} -')
+            print('- Warning: Something went wrong, retrying... -')
+            retry_count += 1
+
+    if retry_count >= MAX_RETRIES:
+        print('- Rendering aborted, out of retries -')
+
+    print(f'-- Rendering done after {round((time.time() - start_time) / 60, 2)} minutes --')
 
 
 # Main entrypoint

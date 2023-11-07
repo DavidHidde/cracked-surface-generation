@@ -3,54 +3,24 @@ import math
 
 import cv2
 import numpy as np
-from skimage import draw
 
 from dataset_generation.models import BoundingBox, SurfaceMap
 
 
-def rasterize_face(verts: np.array, grid: np.array) -> None:
-    """
-    Rasterize the lines of the face.
-    """
-    num_verts = len(verts)
-    int_verts = np.rint(verts).astype(int)
-    for idx in range(num_verts):
-        curr_vert = int_verts[idx]
-        next_vert = int_verts[(idx + 1) % num_verts]
-        rows, columns = draw.line(curr_vert[2], curr_vert[0], next_vert[2], next_vert[0])
-        depths = np.linspace(verts[idx][1], verts[(idx + 1) % num_verts][1], len(rows))
-        grid[rows, columns] = np.maximum(grid[rows, columns], depths)
-
-
-def get_background_mask(grid: np.array) -> np.array:
-    """
-    Fill all faces on the surface in a single pass
-    """
-    _, labels, stats, _ = cv2.connectedComponentsWithStatsWithAlgorithm(
-        (grid == 0).astype(np.uint8),
-        4,
-        cv2.CV_32S,
-        -1  # Default algorithm
-    )
-    # We assume the component with the biggest area to be the background
-    background_component_idx = np.argmax(stats[:, cv2.CC_STAT_AREA])
-    return labels > background_component_idx
-
-
-def calculate_bounding_box(object: bpy.types.Object) -> BoundingBox:
+def calculate_bounding_box(obj: bpy.types.Object) -> BoundingBox:
     """
     Get the bounding box in world space.
     Assumes the location of the object to be the center.
     """
     center = np.array([
-        object.location.x,
-        object.location.y,
-        object.location.z,
+        obj.location.x,
+        obj.location.y,
+        obj.location.z,
     ])
     dimensions = np.array([
-        object.dimensions.x,
-        object.dimensions.y,
-        object.dimensions.z
+        obj.dimensions.x,
+        obj.dimensions.y,
+        obj.dimensions.z
     ])
 
     return BoundingBox(
@@ -69,48 +39,50 @@ class SurfaceMapGenerator:
     Assumes the object to be positioned along the x-axis
     """
 
-    def __call__(self, objects: list[bpy.types.Object]) -> SurfaceMap:
+    def __call__(self, mortar: bpy.types.Object) -> SurfaceMap:
         """
         Generate the surface map of an object.
         Takes x=x and z=z and disregards the y-dimension.
         """
-
-        # Get the total bounding box
-        bounding_box = calculate_bounding_box(objects[0])
-        for idx in range(1, len(objects)):
-            bounding_box = bounding_box.combine(calculate_bounding_box(objects[idx]))
+        bounding_box = calculate_bounding_box(mortar)
 
         # Setup the grid - We want millimeter precision and Blender dimensions are in meters, so we multiply by 1000
         grid_factor = 1000
-        grid = np.zeros((
-            math.ceil(bounding_box.height * grid_factor) + 1,
-            math.ceil(bounding_box.width * grid_factor) + 1
-        ))
+        grid = np.zeros(
+            (
+                math.ceil(bounding_box.height * grid_factor) + 1,
+                math.ceil(bounding_box.width * grid_factor) + 1,
+            ),
+            np.uint8
+        )
 
         # Draw faces
-        for obj in objects:
-            mesh = obj.data
-            for face in mesh.polygons:
-                # Ignore faces that are not facing us
-                if face.normal.y < 0.2:
-                    continue
+        mesh = mortar.data
+        faces = [face for face in mesh.polygons if face.normal.y < 0.2]
+        face_verts = [[mortar.matrix_world @ mesh.vertices[idx].co for idx in face.vertices] for face in faces]
+        verts = [np.array([
+            [
+                round((vert.x - bounding_box.min_vertex[0]) * grid_factor),
+                round((vert.z - bounding_box.min_vertex[2]) * grid_factor)
+            ] for vert in verts]) for verts in face_verts]
+        cv2.fillPoly(grid, verts, 255)
 
-                verts = [obj.matrix_world @ mesh.vertices[vertex_idx].co for vertex_idx in face.vertices]
-                verts = np.array([[vert.x, vert.y, vert.z] for vert in verts])
-                verts = np.subtract(verts, bounding_box.min_vertex)  # Make sure all values are positive
-                verts *= grid_factor  # Cast to grid dimensions
-                rasterize_face(verts, grid)
-
-        mask = get_background_mask(grid)
+        # Compute other maps
+        mask = grid == 0
         distance_transform = cv2.distanceTransform((mask == False).astype(np.uint8), cv2.DIST_L2, cv2.DIST_MASK_5)
         gradients = np.gradient(distance_transform)
         angles = np.arctan2(gradients[0], gradients[1])
 
+        inverse_distance_transform = cv2.distanceTransform(grid, cv2.DIST_L2, cv2.DIST_MASK_5)
+        inverse_gradients = np.gradient(distance_transform)
+        inverse_angles = np.arctan2(inverse_gradients[0], inverse_gradients[1])
+
         return SurfaceMap(
-            grid,
             mask,
             distance_transform,
             angles,
+            inverse_distance_transform,
+            inverse_angles,
             bounding_box,
             grid_factor
         )
