@@ -1,9 +1,10 @@
 import numpy as np
 from scipy.spatial import Delaunay
 
-from crack_generation.models import CrackParameters, CrackModel
-from dataset_generation.models import SurfaceParameters
 from .crack_path_generator import CrackPathGenerator
+from .models.crack import Crack, CrackPath, CrackMesh
+from .models.crack.parameters import CrackGenerationParameters
+from .models.surface import Surface
 
 
 def centered_gaussian(points: np.array, variance: float) -> np.array:
@@ -13,24 +14,27 @@ def centered_gaussian(points: np.array, variance: float) -> np.array:
     return 1. / (variance * np.sqrt(2 * np.pi)) * np.exp(- points ** 2. / (2. * variance ** 2))
 
 
-def calculate_control_points(parameters: CrackParameters, surface_parameters: SurfaceParameters) -> np.array:
+def calculate_control_points(path: CrackPath, parameters: CrackGenerationParameters) -> np.array:
     """
     Calculate x y z control net for the crack mesh
     """
-    crack_generator = CrackPathGenerator()
-    path = crack_generator(parameters, surface_parameters)
+
     top_line, bot_line = path.top_line, path.bot_line
     length = top_line.shape[0]
 
     # Calculate z points, which we keep constant
-    sigma = 1.
-    points_per_line = 2 + parameters.depth_resolution
-    z_points = -parameters.depth * centered_gaussian(np.linspace(-2 * sigma, 2 * sigma, points_per_line), sigma)
+    dimension_parameters = parameters.dimension_parameters
+    points_per_line = 2 + dimension_parameters.depth_resolution
+    z_points = -dimension_parameters.depth * centered_gaussian(np.linspace(
+        -dimension_parameters.width_stds_offset * dimension_parameters.sigma,
+        dimension_parameters.width_stds_offset * dimension_parameters.sigma,
+        points_per_line
+    ), dimension_parameters.sigma)
     # We want the begin and end to be on the same line, so we move all points down to set the ends to 0
     z_points -= z_points[0]
 
     # Depth points
-    points_per_line = 2 + parameters.depth_resolution
+    points_per_line = 2 + dimension_parameters.depth_resolution
     coords = np.empty((length * points_per_line, 3))
     for idx in range(length):
         top_point, bot_point = top_line[idx, :], bot_line[idx, :]
@@ -45,27 +49,31 @@ def calculate_control_points(parameters: CrackParameters, surface_parameters: Su
     return coords[:length * points_per_line, :]
 
 
-class CrackModelGenerator:
+class CrackGenerator:
     """
     Generator of 3D crack models
     """
 
-    def __call__(self, parameters: CrackParameters, surface_parameters: SurfaceParameters) -> CrackModel:
+    __path_generator: CrackPathGenerator = CrackPathGenerator()
+
+    def __call__(self, parameters: CrackGenerationParameters, surface: Surface) -> Crack:
         """
-        Create a quad mesh out of a set of parameters
+        Create a crack out of a surface and parameters
         """
+        crack_generator = CrackPathGenerator()
+        path = crack_generator(parameters, surface)
 
         # Calculate and center coords
-        coords = calculate_control_points(parameters, surface_parameters)
+        coords = calculate_control_points(path, parameters)
         coords_means = np.mean(coords, axis=0)
         coords[:, :] -= coords_means
 
         # Calculate quad faces
-        points_per_line = 2 + parameters.depth_resolution
+        points_per_line = 2 + parameters.dimension_parameters.depth_resolution
         length = coords[:, 0].shape[0] // points_per_line
         faces = np.empty(((length - 1) * points_per_line, 4), dtype=int)
 
-        # Main body
+        # Main body - quads
         for column_idx in range(length - 1):
             for row_idx in range(points_per_line):
                 face_idx = column_idx * points_per_line + row_idx
@@ -87,4 +95,4 @@ class CrackModelGenerator:
             Delaunay(end_coords[:, [(1 if end_x_is_const else 0), 2]]).simplices + (length - 1) * points_per_line
         ], 0)
 
-        return CrackModel(parameters, coords, coords_means, faces, side_faces)
+        return Crack(path, CrackMesh(coords, coords_means, faces, side_faces), parameters)

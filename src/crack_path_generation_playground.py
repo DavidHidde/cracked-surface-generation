@@ -3,9 +3,11 @@ import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
-from crack_generation.models import CrackParameters, CrackPath
 from crack_generation import CrackPathGenerator
-from crack_generation.ui import PlaygroundInterface
+from crack_generation.models.crack import CrackPath
+from crack_generation.models.crack.parameters import CrackGenerationParameters
+from crack_generation.models.surface import Surface
+from util import PlaygroundInterface, DEFAULT_PARAMETERS
 
 
 def create_single_line(path: CrackPath) -> tuple[np.array, np.array]:
@@ -17,61 +19,41 @@ def create_single_line(path: CrackPath) -> tuple[np.array, np.array]:
 
 
 # Update plot
-def plot_path(parameters: CrackParameters, ax: Axes):
+def update_plot(parameters: CrackGenerationParameters, surface: Surface, ax: Axes) -> None:
     crack_generator = CrackPathGenerator()
-    path = crack_generator(parameters, surface_parameters)
+    path = crack_generator(parameters, surface)
     x, y = create_single_line(path)
     line = ax.get_lines()[0]
     line.set_xdata(x)
     line.set_ydata(y)
 
 
-# Load surface file
-with open('resources/surface_parameters.dump', 'rb') as surface_dump:
-    surface_parameters = pickle.load(surface_dump)
+def main():
+    # Load surface file
+    parameters = DEFAULT_PARAMETERS
+    with open('resources/surface_parameters.dump', 'rb') as surface_dump:
+        surface = pickle.load(surface_dump)
 
-# Initial parameters
-DEPTH = 0
-INITIAL_WIDTH = 5
-START_STEPS = 0
-END_STEPS = 0
-DEPTH_RESOLUTION = 0
-STEP_SIZE = 2.
-L2_FILTER = 0.1
-GRADIENT_INFLUENCE = 0.5
-WIDTH_PERMUTATION_CHANCE = 0.1
-BREAKTHROUGH_CHANCE = 0.1
-SMOOTHING = 0
+    # Setup plot
+    fig, ax = plt.subplots(figsize=(16, 5), dpi=100)
+    crack_generator = CrackPathGenerator()
 
-# Setup plot
-fig, ax = plt.subplots(figsize=(16, 5), dpi=100)
+    path = crack_generator(parameters, surface)
+    x, y = create_single_line(path)
+    line, = ax.plot(x, y, color='red')
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.imshow(surface.map.mask, cmap='gray')
+    ax.invert_yaxis()  # Align with 3D model
 
-# Initial plot
-crack_generator = CrackPathGenerator()
-parameters = CrackParameters(
-    DEPTH,
-    INITIAL_WIDTH,
-    START_STEPS,
-    END_STEPS,
-    DEPTH_RESOLUTION,
-    STEP_SIZE,
-    GRADIENT_INFLUENCE,
-    WIDTH_PERMUTATION_CHANCE,
-    BREAKTHROUGH_CHANCE,
-    SMOOTHING
-)
-path = crack_generator(parameters, surface_parameters)
-x, y = create_single_line(path)
-line, = ax.plot(x, y, color='red')
-ax.set_xlabel('x')
-ax.set_ylabel('y')
-ax.imshow(surface_parameters.surface_map.mask, cmap='gray')
-ax.invert_yaxis()  # Align with 3D model
+    ui = PlaygroundInterface(
+        'Crack parameter playground',
+        update_plot,
+        fig,
+        ax
+    )
+    ui.start(parameters, surface)
 
-ui = PlaygroundInterface(
-    'Crack parameter playground',
-    plot_path,
-    fig,
-    ax
-)
-ui.start(parameters)
+
+if __name__ == "__main__":
+    main()
