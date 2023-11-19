@@ -25,6 +25,10 @@ parser.add_argument(
     "-c", "--count", dest="count", type=int, required=False, default=1,
     help="The data set size.",
 )
+parser.add_argument(
+    "-p", "--config", dest="config", type=str, required=False, default='configuration.yaml',
+    help="The path to the configuration file.",
+)
 args = parser.parse_args(argv)  # In this example we won't use the args
 
 # Add to path
@@ -40,4 +44,4 @@ for key in modules:
     importlib.reload(sys.modules[key])
 
 importlib.reload(generate_dataset)
-generate_dataset.main(args.count)
+generate_dataset.main(args.count, args.config)

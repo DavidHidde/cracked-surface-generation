@@ -52,6 +52,12 @@ class PlaygroundInterface:
         self.fig = figure
         self.ax = ax
 
+        self.sliders = {
+            'dimension_parameters': {},
+            'path_parameters': {},
+            'trajectory_parameters': {}
+        }
+
         self.window = Tk()
         self.window.title(title)
 
@@ -85,7 +91,7 @@ class PlaygroundInterface:
 
     def redraw(self):
         # Update current parameters
-        parameters_dict = {key: asdict(child_parameters) for key, child_parameters in asdict(self.parameters).items()}
+        parameters_dict = asdict(self.parameters)
         for child_dict_key, child_dict in self.sliders.items():
             for key, slider in child_dict.items():
                 parameters_dict[child_dict_key][key] = slider.get()
@@ -177,7 +183,7 @@ class PlaygroundInterface:
         frame.pack()
 
         # Add sliders
-        parameters_dict = {key: asdict(child_parameters) for key, child_parameters in asdict(self.parameters).items()}
+        parameters_dict = asdict(self.parameters)
         scales_per_column = ceil(len(slider_settings) / 2)
         idx = 0
         for child_dict_key, child_dict in slider_settings.items():
@@ -188,7 +194,7 @@ class PlaygroundInterface:
                     row=idx % scales_per_column,
                     column=(0 if idx < scales_per_column else 2)
                 )
-                self.sliders[attr_name] = scale
+                self.sliders[child_dict_key][attr_name] = scale
                 idx += 1
 
         # Add redraw button

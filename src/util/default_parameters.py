@@ -3,9 +3,9 @@ from crack_generation.models.crack.parameters import CrackGenerationParameters, 
 
 DEFAULT_PARAMETERS = CrackGenerationParameters(
     CrackDimensionParameters(
-        width=0,
-        depth=0,
-        depth_resolution=0,
+        width=5.,
+        depth=5.,
+        depth_resolution=5,
         sigma=1.,
         width_stds_offset=2.
     ),

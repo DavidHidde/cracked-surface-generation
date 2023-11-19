@@ -1,11 +1,6 @@
 import bpy
 
-SAFE_COLLECTIONS: list[str] = [
-    'Base assets',
-    'Walls',
-    'Base assets 2',
-    'Walls 2'
-]
+from dataset_generation.models import Configuration
 
 
 class SceneClearer:
@@ -13,12 +8,12 @@ class SceneClearer:
     Operation that clears the scene aside from a single marked collection
     """
 
-    def __call__(self) -> None:
+    def __call__(self, config: Configuration) -> None:
         """
         Clear objects from the scene aside from the safe collection
         """
         for collection in bpy.data.collections:
-            if collection.name not in SAFE_COLLECTIONS:
+            if collection.name not in config.asset_collection.safe_collections:
                 for obj in collection.objects:
                     bpy.data.objects.remove(obj, do_unlink=True)
                 bpy.data.collections.remove(collection, do_unlink=True)

@@ -146,7 +146,7 @@ class CrackPathGenerator:
         while idx < total_steps:
             vector_diff = top_line[idx, :] - bot_line[idx, :]
             center = (top_line[idx, :] + bot_line[idx, :]) / 2
-            width = max(np.linalg.norm(vector_diff) - idx * width_grow_increments, path_parameters)
+            width = max(np.linalg.norm(vector_diff) - idx * width_grow_increments, path_parameters.min_width)
             angle = np.arctan2(vector_diff[1], vector_diff[0])
             top_line[idx, :], bot_line[idx, :] = determine_width_points(center, width, angle)
             idx += 1

@@ -1,20 +1,22 @@
 import pickle
+import random
+import traceback
+from copy import deepcopy
 
 import bpy
 import time
 
-from dataset_generation.crack_generator import CrackGenerator
 from dataset_generation.empty_label_error import EmptyLabelError
-from dataset_generation.operations import SceneClearer, MaterialLoader, SceneParameterGenerator, \
-    CrackParametersGenerator, WallSetLoader, PatchGenerator
+from dataset_generation.operations import SceneClearer, PatchGenerator
+from dataset_generation.operations.generators import SceneParameterGenerator, CrackModelGenerator
+from dataset_generation.operations.loader import ConfigLoader
 from dataset_generation.scene_generator import SceneGenerator
 
 DUMP_SURFACE = False
-PATCHES_PER_DIMENSION = 5
 MAX_RETRIES = 5
 
 
-def main(dataset_size: int = 1):
+def main(dataset_size: int = 1, config_file_path: str = 'configuration.yaml'):
     """
     Main entrypoint
     """
@@ -25,23 +27,19 @@ def main(dataset_size: int = 1):
     # Setup of constants
     scene_clearer = SceneClearer()
     patch_generator = PatchGenerator()
-    crack_generator = CrackGenerator()
+    crack_generator = CrackModelGenerator()
     scene_generator = SceneGenerator()
-    crack_parameters_generator = CrackParametersGenerator()
     scene_parameters_generator = SceneParameterGenerator()
+    config_loader = ConfigLoader()
 
-    scene_clearer()  # Clear scene before determining surfaces
-    materials = (MaterialLoader())()
-    wall_sets = (WallSetLoader())()
+    config = config_loader(config_file_path)
 
     if DUMP_SURFACE:
-        with open('surface_parameters.dump', 'wb') as surface_file:
-            pickle.dump(wall_sets[0].surface_parameters, surface_file)
+        with open('surface.dump', 'wb') as surface_file:
+            pickle.dump(config.asset_collection.scenes[1].surface, surface_file)
 
-    camera = bpy.data.objects['Camera']
-
-    bpy.context.scene.render.resolution_x = max(PATCHES_PER_DIMENSION, 1) * 224
-    bpy.context.scene.render.resolution_y = max(PATCHES_PER_DIMENSION, 1) * 224
+    bpy.context.scene.render.resolution_x = max(config.label_parameters.num_patches, 1) * 224
+    bpy.context.scene.render.resolution_y = max(config.label_parameters.num_patches, 1) * 224
 
     """
     Main generation loop:
@@ -56,17 +54,17 @@ def main(dataset_size: int = 1):
     while idx < dataset_size and retry_count < MAX_RETRIES + 1:
         try:
             file_name = f'crack-{idx}'
-            scene_clearer()
-            scene_parameters = scene_parameters_generator(file_name, materials, wall_sets)
+            scene_clearer(config)
+            scene_parameters = scene_parameters_generator(file_name, config)
             crack = crack_generator(
-                crack_parameters_generator(scene_parameters.wall_set.surface_parameters),
-                scene_parameters.wall_set.surface_parameters,
+                config.crack_parameters,
+                scene_parameters.wall_set.surface,
                 file_name + '.obj'
             )
-            scene_generator(camera, crack, scene_parameters)
+            scene_generator(crack, config, scene_parameters)
 
-            if PATCHES_PER_DIMENSION > 1:
-                idx += patch_generator(file_name, PATCHES_PER_DIMENSION)
+            if config.label_parameters.num_patches > 1:
+                idx += patch_generator(file_name, config.label_parameters)
             else:
                 idx += 1
 
@@ -76,6 +74,7 @@ def main(dataset_size: int = 1):
             retry_count += 1
         except Exception as e:
             print(f'- Error: {e} -')
+            print(traceback.format_exc())
             print('- Warning: Something went wrong, retrying... -')
             retry_count += 1
 

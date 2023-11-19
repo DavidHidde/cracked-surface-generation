@@ -31,7 +31,7 @@ def update_plot(parameters: CrackGenerationParameters, surface: Surface, ax: Axe
 def main():
     # Load surface file
     parameters = DEFAULT_PARAMETERS
-    with open('resources/surface_parameters.dump', 'rb') as surface_dump:
+    with open('resources/surface.dump', 'rb') as surface_dump:
         surface = pickle.load(surface_dump)
 
     # Setup plot
