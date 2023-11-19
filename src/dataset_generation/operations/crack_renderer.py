@@ -3,6 +3,7 @@ import os
 import bpy
 
 from .label_thresholder import LabelThresholder
+from dataset_generation.models.parameters import LabelGenerationParameters
 
 
 class CrackRenderer:
@@ -16,6 +17,7 @@ class CrackRenderer:
             self,
             crack: bpy.types.Object,
             wall: bpy.types.Object,
+            label_parameters: LabelGenerationParameters,
             output_name: str
     ) -> None:
         """
@@ -49,4 +51,4 @@ class CrackRenderer:
         mix_node.inputs[0].default_value = 0.
         
         # Threshold the image
-        self.__label_thresholder(label_file_path)
+        self.__label_thresholder(label_file_path, label_parameters)

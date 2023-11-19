@@ -1,4 +1,4 @@
-from crack_generation.models import CrackModel
+from crack_generation.models.crack import Crack
 
 
 class ObjFileExporter:
@@ -6,21 +6,17 @@ class ObjFileExporter:
     Class that exports crack models into .obj files
     """
 
-    def __call__(self, model: CrackModel, filepath: str) -> bool:
+    def __call__(self, crack: Crack, filepath: str) -> bool:
         """
-        Export a model to a .obj file
+        Export a crack to a .obj file
         """
 
-        points = model.points
-        faces = model.faces + 1
-        side_faces = model.side_faces + 1
-
-        # Scale down to 1% to get a reasonable size.
-        points = [coords * 0.01 for coords in points]
+        faces = crack.mesh.faces + 1
+        side_faces = crack.mesh.side_faces + 1
 
         try:
             with open(filepath, 'w') as objfile:
-                for vertex in points:
+                for vertex in crack.mesh.vertices:
                     objfile.write('v %.4f %.4f %.4f\n' % (vertex[0], vertex[1], vertex[2]))
                 for quad in faces:
                     objfile.write('f %d %d %d %d\n' % (quad[0], quad[1], quad[2], quad[3]))

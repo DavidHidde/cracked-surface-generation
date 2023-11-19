@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
 
-from crack_generation import CrackModelGenerator
-from crack_generation.models import CrackParameters
-
-from crack_generation.ui import PlaygroundInterface
+from crack_generation import CrackGenerator
+from crack_generation.models.crack.parameters import CrackGenerationParameters
+from crack_generation.models.surface import Surface
+from util import PlaygroundInterface, DEFAULT_PARAMETERS
 
 
 def set_ax_bounds(ax, x, y, z):
@@ -28,69 +28,38 @@ def set_ax_bounds(ax, x, y, z):
     ax.set_zlim(min_z, max_z)
 
 
-def update_plot(parameters: CrackParameters, ax: Axes) -> None:
+def update_plot(parameters: CrackGenerationParameters, surface: Surface, ax: Axes) -> None:
     ax.clear()
-    model = (CrackModelGenerator())(parameters, surface_parameters)
-    coords = model.points
-    for face in model.faces:
+    crack = (CrackGenerator())(parameters, surface)
+    coords = crack.mesh.vertices
+    for face in crack.mesh.faces:
         face = np.append(face, face[0])  # Here we cycle back to the first coordinate
         ax.plot(coords[face, 0], coords[face, 1], coords[face, 2], color='red')
-    for face in model.side_faces:
+    for face in crack.mesh.side_faces:
         face = np.append(face, face[0])  # Here we cycle back to the first coordinate
         ax.plot(coords[face, 0], coords[face, 1], coords[face, 2], color='red')
 
     set_ax_bounds(ax, coords[:, 0], coords[:, 1], coords[:, 2])
 
 
-# Load surface file
-with open('resources/surface_parameters.dump', 'rb') as surface_dump:
-    surface_parameters = pickle.load(surface_dump)
+def main():
+    # Load surface file
+    parameters = DEFAULT_PARAMETERS
+    with open('resources/surface.dump', 'rb') as surface_dump:
+        surface = pickle.load(surface_dump)
 
-# Initial parameters
-DEPTH = 5
-INITIAL_WIDTH = 5
-START_STEPS = 0
-END_STEPS = 0
-DEPTH_RESOLUTION = 5
-STEP_SIZE = 2.
-GRADIENT_INFLUENCE = 0.5
-L2_FILTER = 0.1
-WIDTH_PERMUTATION_CHANCE = 0.1
-BREAKTHROUGH_CHANCE = 0.1
-SMOOTHING = 0
+    # Initial plot
+    fig, ax = plt.subplots(figsize=(16, 5), dpi=100, subplot_kw={"projection": "3d"})
+    update_plot(parameters, surface, ax)
 
-# Initial plot
-parameters = CrackParameters(
-    DEPTH,
-    INITIAL_WIDTH,
-    START_STEPS,
-    END_STEPS,
-    DEPTH_RESOLUTION,
-    STEP_SIZE,
-    GRADIENT_INFLUENCE,
-    WIDTH_PERMUTATION_CHANCE,
-    BREAKTHROUGH_CHANCE,
-    SMOOTHING
-)
-generator = CrackModelGenerator()
-model = generator(parameters, surface_parameters)
+    ui = PlaygroundInterface(
+        'Crack 3D model playground',
+        update_plot,
+        fig,
+        ax
+    )
+    ui.start(parameters, surface)
 
-fig, ax = plt.subplots(figsize=(16, 5), dpi=100, subplot_kw={"projection": "3d"})
 
-coords = model.points
-for face in model.faces:
-    face = np.append(face, face[0])  # Here we cycle back to the first coordinate
-    ax.plot(coords[face, 0], coords[face, 1], coords[face, 2], color='red')
-for face in model.side_faces:
-    face = np.append(face, face[0])  # Here we cycle back to the first coordinate
-    ax.plot(coords[face, 0], coords[face, 1], coords[face, 2], color='red')
-
-set_ax_bounds(ax, coords[:, 0], coords[:, 1], coords[:, 2])
-
-ui = PlaygroundInterface(
-    'Crack 3D model playground',
-    update_plot,
-    fig,
-    ax
-)
-ui.start(parameters)
+if __name__ == "__main__":
+    main()

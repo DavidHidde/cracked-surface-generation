@@ -1,6 +1,7 @@
 import bpy
 
-from dataset_generation.models import SceneParameters
+from dataset_generation.models import Configuration
+from dataset_generation.models.parameters import SceneParameters
 from dataset_generation.operations import CrackRenderer
 from dataset_generation.operations.obj import CameraAligner, ObjDuplicator
 
@@ -16,8 +17,8 @@ class SceneGenerator:
 
     def __call__(
             self,
-            camera: bpy.types.Object,
             crack: bpy.types.Object,
+            config: Configuration,
             parameters: SceneParameters
     ) -> None:
         """
@@ -35,7 +36,12 @@ class SceneGenerator:
         bpy.data.worlds['World'].node_tree.nodes['Environment Texture'].image = parameters.world_texture
 
         # Move camera to object
-        self.__camera_aligner(camera, crack, parameters.camera_rotation, parameters.camera_translation)
+        self.__camera_aligner(
+            config.camera_parameters.camera_obj,
+            crack,
+            parameters.camera_rotation,
+            parameters.camera_translation
+        )
 
         # Make all dependent objects visible for the render
         wall.hide_render = False
@@ -43,4 +49,4 @@ class SceneGenerator:
             obj.hide_render = False
 
         # Start rendering
-        self.__crack_renderer(crack, wall, parameters.output_file_name)
+        self.__crack_renderer(crack, wall, config.label_parameters, parameters.output_file_name)

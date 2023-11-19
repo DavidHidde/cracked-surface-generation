@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import bpy
 
-from .surface_parameters import SurfaceParameters
+from crack_generation.models.surface import Surface
 
 
 @dataclass
@@ -13,5 +13,5 @@ class WallSet:
     
     wall: bpy.types.Object
     mortar: bpy.types.Object
+    surface: Surface
     other_objects: list[bpy.types.Object]
-    surface_parameters: SurfaceParameters
