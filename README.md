@@ -20,6 +20,16 @@ blender scene.blend --background --python blender_start_render_script.py -- -c <
 
 where the argument `-c` is used to set the desired data set size and `-p` is the path to the configuration file that should be used.
 
+### The `scene.blend` features
+
+The Blender source file contains a couple of features that the framework is designed around. The most important of these are:
+
+* The framework expects both an object for a wall and its mortar. These can be generated through the Geometry Nodes modifier `Wall v3` which can be applied to any cube-like geometry. Be sure to always apply the object scale when using this modifier.
+* Wall models are expected to have a boolean modifier called `crack_difference`.
+* The world texture ends in a mix node, which is used to turn the HDRI on and off.
+
+The framework also contains materials for the walls. These materials use the brick texture from Blender, which is lined up to work with the current dimensions used for bricks (0.21 x 0.05 with a mortar size of 0.1). The default settings for the `Wall v3` geometry nodes modifier do line up correctly with the material, but changing the dimension settings in the nodes modifier will cause the material to not line up correctly anymore. This also happens when using a different width : height ratio for the base model. Finally, the last quirk to keep in mind is that a collection outside of the safe collections should be selected when starting data set generation, as the imported crack objects will be added to the selected collection.
+
 ## Requirements
 
 * Blender >= 3.6.2, Blender versions past 3.6.5 have not been tested.
@@ -58,6 +68,8 @@ To use the default configuration parameters, the same HDRIs need to be added. Th
 * https://polyhaven.com/a/urban_street_01
 * https://polyhaven.com/a/stuttgart_suburbs
 
+The scene also uses a door sourced from [BlenderKit](https://www.blenderkit.com/get-blenderkit/0d8c66e5-53df-4778-b070-ea40743e7ebe/), but this is already included in the `.blend` file and does not need to be imported again.
+
 ## Directory structure
 
 The project is split up into directories as follows:
@@ -74,84 +86,85 @@ The project is split up into directories as follows:
 
 ## Configuration
 
-The framework uses a YAML file for setting most of the parameters. Please take a look at [`configuration.yaml`](src/resources/configuration.yaml) for some default values.
+The framework uses a YAML file for setting most of the parameters. Please take a look at [`configuration.yaml`](src/resources/configuration.yaml) for some default values. Note that dashes (`-`) mark the level of identation in the Table below.
 
-| Name                        |                             |                                |                   |              | Data type    | Description                                                                                 |
-|-----------------------------|-----------------------------|--------------------------------|-------------------|--------------|--------------|---------------------------------------------------------------------------------------------|
-| crack_generation_parameters |                             |                                |                   |              |              |                                                                                             |
-|                             | crack_dimension_parameters  |                                |                   |              |              |                                                                                             |
-|                             |                             | width                          |                   |              | float        | Initial width of the crack                                                                  |
-|                             |                             | depth                          |                   |              | float        | Depth of the crack model                                                                    |
-|                             |                             | depth_resolution               |                   |              | int          | Points to sample for the depth                                                              |
-|                             |                             | sigma                          |                   |              | float        | Standard deviation of the Gaussian depth distribution                                       |
-|                             |                             | width_stds_offset              |                   |              | float        | Offset of width points in standard deviations                                               |
-|                             | crack_path_parameters       |                                |                   |              |              |                                                                                             |
-|                             |                             | step_size                      |                   |              | float        | Gradient ascent step size                                                                   |
-|                             |                             | gradient_influence             |                   |              | float        | Percent of how much of the gradient is used for path generation.                            |
-|                             |                             | width_update_chance            |                   |              | float        | Percent chance for the width to be updated                                                  |
-|                             |                             | breakthrough_chance            |                   |              | float        | Percent chance to ignore the gradient direction                                             |
-|                             |                             | min_distance                   |                   |              | float        | Minimum distance between the current point and the next pivot point before generation stops |
-|                             |                             | min_width                      |                   |              | float        | Minimum width of the crack before generation stops                                          |
-|                             |                             | max_width_grow                 |                   |              | float        | Max increment the width is allowed to grow                                                  |
-|                             |                             | max_width_grow_factor          |                   |              | float        | Percent of how much of the current width the width is allowed to grow                       |
-|                             |                             | start_pointiness               |                   |              | int          | Number of width grow steps to perform at the beginning of the crack                         |
-|                             |                             | end_pointiness                 |                   |              | int          | Number of width grow steps to perform at the end of the crack                               |
-|                             |                             | smoothing                      |                   |              | int          | Size of the 1D Gaussian smoothing kernels                                                   |
-|                             |                             | distance_improvement_threshold |                   |              | float        | Threshold for the distance gradient for points to be filtered out                           |
-|                             | crack_trajectory_parameters |                                |                   |              |              |                                                                                             |
-|                             |                             | along_bottom_chance            |                   |              | float        | Percent chance of the pivot point appearing along the bottom                                |
-|                             |                             | along_diagonal_chance          |                   |              | float        | Percent chance of the pivot point appearing along the opposite corner                       |
-|                             |                             | along_side_chance              |                   |              | float        | Percent chance of the pivot point appearing along the opposite side                         |
-|                             |                             | max_pivot_brick_widths         |                   |              | int          | Maximum number of brick to use for the width of the pivot grid                              |
-|                             |                             | max_pivot_brick_heights        |                   |              | int          | Maximum number of brick to use for the height of the pivot grid                             |
-|                             |                             | max_pivot_points               |                   |              | int          | Maximum number of pivot points to generate                                                  |
-|                             |                             | row_search_space_percent       |                   |              | float        | Percent of the row space to use for the starting point                                      |
-|                             |                             | column_search_space_percent    |                   |              | float        | Percent of the column space to use for the starting point                                   |
-| scene_generation_parameters |                             |                                |                   |              |              |                                                                                             |
-|                             | assets                      |                                |                   |              |              |                                                                                             |
-|                             |                             | safe_collections               |                   |              | list[str]    | Names of collections to not clear during scene clearing                                     |
-|                             |                             | label_material                 |                   |              | str          | Name of the material to use for the crack label                                             |
-|                             |                             | hdris                          |                   |              | list[str]    | Names of the HDRIs to use                                                                   |
-|                             |                             | materials                      |                   |              | list[str]    | Names of the materials to use for the wall                                                  |
-|                             |                             | scenes                         |                   |              | list[object] | Set of objects that describe a scene                                                        |
-|                             |                             |                                | wall              |              | str          | Name of the wall object                                                                     |
-|                             |                             |                                | mortar            |              | str          | Name of the mortar object of the wall                                                       |
-|                             |                             |                                | other             |              | list[str]    | Names of other objects relevant to the scene                                                |
-|                             |                             |                                | wall_properties   |              |              |                                                                                             |
-|                             |                             |                                |                   | brick_width  | float        | Width of the bricks of the wall                                                             |
-|                             |                             |                                |                   | brick_height | float        | Height of the bricks of the wall                                                            |
-|                             |                             |                                |                   | mortar_size  | float        | Mortar size of the wall                                                                     |
-|                             | camera_parameters           |                                |                   |              |              |                                                                                             |
-|                             |                             | object                         |                   |              | str          | Name of the camera object                                                                   |
-|                             |                             | rotation                       |                   |              |              |                                                                                             |
-|                             |                             |                                | x                 |              |              |                                                                                             |
-|                             |                             |                                |                   | min          | float        | Minimum x camera rotation in radians                                                        |
-|                             |                             |                                |                   | max          | float        | Maximum x camera rotation in radians                                                        |
-|                             |                             |                                | y                 |              |              |                                                                                             |
-|                             |                             |                                |                   | min          | float        | Minimum y camera rotation in radians                                                        |
-|                             |                             |                                |                   | max          | float        | Maximum y camera rotation in radians                                                        |
-|                             |                             |                                | z                 |              |              |                                                                                             |
-|                             |                             |                                |                   | min          | float        | Minimum z camera rotation in radians                                                        |
-|                             |                             |                                |                   | max          | float        | Maximum z camera rotation in radians                                                        |
-|                             |                             | translation                    |                   |              |              |                                                                                             |
-|                             |                             |                                | x                 |              |              |                                                                                             |
-|                             |                             |                                |                   | min          | float        | Minimum x camera translation                                                                |
-|                             |                             |                                |                   | max          | float        | Maximum x camera translation                                                                |
-|                             |                             |                                | y                 |              |              |                                                                                             |
-|                             |                             |                                |                   | min          | float        | Minimum y camera translation                                                                |
-|                             |                             |                                |                   | max          | float        | Maximum y camera translation                                                                |
-|                             |                             |                                | z                 |              |              |                                                                                             |
-|                             |                             |                                |                   | min          | float        | Minimum z camera translation                                                                |
-|                             |                             |                                |                   | max          | float        | Maximum z camera translation                                                                |
-|                             | label_generation            |                                |                   |              |              |                                                                                             |
-|                             |                             | patches                        |                   |              | int          | Number of patches to generate. 1 does not use the patch approach                            |
-|                             |                             | thresholding                   |                   |              |              |                                                                                             |
-|                             |                             |                                | min_active_pixels |              | int          | Minimum number of pixels that need to be active in a label for it to not get rejected       |
-|                             |                             |                                | min_rgb_color     |              |              |                                                                                             |
-|                             |                             |                                |                   | r            | int          | Minimum red value for thresholding                                                          |
-|                             |                             |                                |                   | g            | int          | Minimum green value for thresholding                                                        |
-|                             |                             |                                |                   | b            | int          | Minimum blue value for thresholding                                                         |
-|                             |                             |                                | max_rgb_color     |              |              |                                                                                             |
-|                             |                             |                                |                   | r            | int          | Maximum red value for thresholding                                                          |
-|                             |                             |                                |                   | g            | int          | Maximum green value for thresholding                                                        |
-|                             |                             |                                |                   | b            | int          | Maximum blue value for thresholding                                                         |
+| Name                        | Data type    | Description                                                                                 |
+|-----------------------------|--------------|---------------------------------------------------------------------------------------------|
+| - crack_generation_parameters |             |                                                                                            |
+| -- crack_dimension_parameters | float        | Initial width of the crack                                                                  |
+| --- width                 | float        | Initial width of the crack                                                                  |
+| --- depth                 | float        | Depth of the crack model                                                                    |
+| --- depth_resolution      | int          | Points to sample for the depth                                                              |
+| --- sigma                 | float        | Standard deviation of the Gaussian depth distribution                                       |
+| --- width_stds_offset     | float        | Offset of width points in standard deviations                                               |
+| -- crack_path_parameters    | float        | Gradient ascent step size                                                                   |
+| --- step_size             | float        | Gradient ascent step size                                                ƒ                   |
+| --- gradient_influence    | float        | Percent of how much of the gradient is used for path generation.                            |
+| --- width_update_chance   | float        | Percent chance for the width to be updated                                                  |
+| --- breakthrough_chance   | float        | Percent chance to ignore the gradient direction                                             |
+| --- min_distance          | float        | Minimum distance between the current point and the next pivot point before generation stops |
+| --- min_width             | float        | Minimum width of the crack before generation stops                                          |
+| --- max_width_grow        | float        | Max increment the width is allowed to grow                                                  |
+| --- max_width_grow_factor | float        | Percent of how much of the current width the width is allowed to grow                       |
+| --- start_pointiness      | int          | Number of width grow steps to perform at the beginning of the crack                         |
+| --- end_pointiness        | int          | Number of width grow steps to perform at the end of the crack                               |
+| --- smoothing             | int          | Size of the 1D Gaussian smoothing kernels                                                   |
+| --- distance_improvement_threshold | float | Threshold for the distance gradient for points to be filtered out                           |
+| -- crack_trajectory_parameters | float    | Percent chance of the pivot point appearing along the bottom                                |
+| --- along_bottom_chance   | float        | Percent chance of the pivot point appearing along the bottom                                |
+| --- along_diagonal_chance | float        | Percent chance of the pivot point appearing along the opposite corner                       |
+| --- along_side_chance     | float        | Percent chance of the pivot point appearing along the opposite side                         |
+| --- max_pivot_brick_widths | int       | Maximum number of brick to use for the width of the pivot grid                              |
+| --- max_pivot_brick_heights | int      | Maximum number of brick to use for the height of the pivot grid                             |
+| --- max_pivot_points      | int          | Maximum number of pivot points to generate                                                  |
+| --- row_search_space_percent | float    | Percent of the row space to use for the starting point                                      |
+| --- column_search_space_percent | float | Percent of the column space to use for the starting point                                   |
+| - scene_generation_parameters |           |                                                                                            |
+| -- assets                  |             |                                                                                            |
+| --- safe_collections      | list[str]    | Names of collections to not clear during scene clearing                                     |
+| --- label_material         | str          | Name of the material to use for the crack label                                             |
+| --- hdris                  | list[str]    | Names of the HDRIs to use                                                                   |
+| --- materials              | list[str]    | Names of the materials to use for the wall                                                  |
+| --- scenes                 | list[object] | Set of objects that describe a scene                                                        |
+| --- wall                   | str          | Name of the wall object                                                                     |
+| --- mortar                 | str          | Name of the mortar object of the wall                                                       |
+| --- other                  | list[str]    | Names of other objects relevant to the scene                                                |
+| --- wall_properties        |             |                                                                                            |
+| ---- brick_width          | float        | Width of the bricks of the wall                                                             |
+| ---- brick_height         | float        | Height of the bricks of the wall                                                            |
+| ---- mortar_size          | float        | Mortar size of the wall                                                                     |
+| - camera_parameters          |             |                                                                                            |
+| -- object                   | str          | Name of the camera object                                                                   |
+| -- rotation                 |             |                                                                                            |
+| --- x                      |             |                                                                                            |
+| ---- min                  | float        | Minimum x camera rotation in radians                                                        |
+| ---- max                  | float        | Maximum x camera rotation in radians                                                        |
+| --- y                      |             |                                                                                            |
+| ---- min                  | float        | Minimum y camera rotation in radians                                                        |
+| ---- max                  | float        | Maximum y camera rotation in radians                                                        |
+| --- z                      |             |                                                                                            |
+| ---- min                  | float        | Minimum z camera rotation in radians                                                        |
+| ---- max                  | float        | Maximum z camera rotation in radians                                                        |
+| -- translation              |             |                                                                                            |
+| --- x                      |             |                                                                                           |
+| ---- min                  | float        | Minimum x camera translation                                                                |
+| ---- max                  | float        | Maximum x camera translation                                                                |
+| --- y                      |             |                                                                                            |
+| ---- min                  | float        | Minimum y camera translation                                                                |
+| ---- max                  | float        | Maximum y camera translation                                                                |
+| --- z                      |             |                                                                                            |
+| ---- min                  | float        | Minimum z camera translation                                                                |
+| ---- max                  | float        | Maximum z camera translation                                                                |
+| - label_generation           |             |                                                                                            |
+| -- patches                  | int          | Number of patches to generate. 1 does not use the patch approach                            |
+| -- thresholding             |             |                                                                                            |
+| --- min_active_pixels      | int          | Minimum number of pixels that need to be active in a label for it to not get rejected       |
+| --- min_rgb_color          |             |                                                                                            |
+| ---- r                    | int          | Minimum red value for thresholding                                                          |
+| ---- g                    | int          | Minimum green value for thresholding                                                        |
+| ---- b                    | int          | Minimum blue value for thresholding                                                         |
+| --- max_rgb_color          |             |                                                                                            |
+| ---- r                    | int          | Maximum red value for thresholding                                                          |
+| ---- g                    | int          | Maximum green value for thresholding                                                        |
+| ---- b                    | int          | Maximum blue value for thresholding                                                         |
+
