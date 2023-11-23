@@ -184,7 +184,7 @@ class PlaygroundInterface:
 
         # Add sliders
         parameters_dict = asdict(self.parameters)
-        scales_per_column = ceil(len(slider_settings) / 2)
+        scales_per_column = ceil((len(slider_settings['dimension_parameters']) + len(slider_settings['path_parameters']) + len(slider_settings['trajectory_parameters'])) / 2)
         idx = 0
         for child_dict_key, child_dict in slider_settings.items():
             for attr_name, settings in child_dict.items():
