@@ -69,9 +69,4 @@ class CrackModelGenerator:
         apply_transformations(crack_obj)
         crack_obj.evaluated_get(bpy.context.evaluated_depsgraph_get())
 
-        # Create the crack intersection modifier
-        intersection_mod = crack_obj.modifiers.new('crack_intersect', 'BOOLEAN')
-        intersection_mod.operation = 'INTERSECT'
-        intersection_mod.use_self = True
-
         return crack_obj

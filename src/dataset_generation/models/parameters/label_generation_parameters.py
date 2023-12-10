@@ -9,6 +9,6 @@ class LabelGenerationParameters:
     
     num_patches: int
     min_active_pixels: int
-    min_rgb_value: tuple[int, int, int]
-    max_rgb_value: tuple[int, int, int]
-    
+    min_threshold: int
+    max_threshold: int
+    threshold_increments: int

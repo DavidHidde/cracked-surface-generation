@@ -82,21 +82,15 @@ scene_generation_parameters:
                 min: -0.2
                 max: 0.2
             y:
-                min: -1.0
-                max: -0.6
+                min: -0.4
+                max: -0.8
             z:
                 min: -0.2
                 max: 0.2
     label_generation:
         patches: 1
         thresholding:
-            min_active_pixels: 5
-            min_rgb_color:
-                r: 75
-                g: 75
-                b: 75
-            max_rgb_color:
-                r: 255
-                g: 255
-                b: 255
- 
+            min_active_pixels: 50
+            min_threshold: 70
+            max_threshold: 220
+            increment: 10
