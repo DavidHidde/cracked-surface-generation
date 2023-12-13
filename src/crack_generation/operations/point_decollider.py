@@ -16,7 +16,7 @@ class PointDecollider:
         collision_checker = CollisionChecker(surface)
 
         while collision_checker.within_bounds(position) and collision_checker.in_object(position):
-            angle = surface.map.inverse_gradient_angles[position[1], position[0]]
+            angle = surface.map.gradient_angles[position[1], position[0]]
             position += np.rint(2 * np.array([np.cos(angle), np.sin(angle)])).astype(int)
 
         return position

@@ -163,10 +163,19 @@ class CrackPathGenerator:
         # Smooth path through 1D gaussian filter convolution
         smoothing = path_parameters.smoothing
         if smoothing > 0:
-            top_line[:, 0] = gaussian_filter1d(top_line[:, 0], 1., mode='nearest', radius=smoothing)
-            top_line[:, 1] = gaussian_filter1d(top_line[:, 1], 1., mode='nearest', radius=smoothing)
+            padded_top_line = np.concatenate([
+                np.repeat([top_line[0, :]], smoothing - 1, 0),
+                top_line,
+                np.repeat([top_line[-1, :]], smoothing - 1, 0)
+            ], 0)
+            padded_bot_line = np.concatenate([
+                np.repeat([bot_line[0, :]], smoothing - 1, 0),
+                bot_line,
+                np.repeat([bot_line[-1, :]], smoothing - 1, 0)
+            ], 0)
+            top_cumsum, bot_cumsum = np.cumsum(padded_top_line, 0), np.cumsum(padded_bot_line, 0)
 
-            bot_line[:, 0] = gaussian_filter1d(bot_line[:, 0], 1., mode='nearest', radius=smoothing)
-            bot_line[:, 1] = gaussian_filter1d(bot_line[:, 1], 1., mode='nearest', radius=smoothing)
+            top_line[1:-1] = (top_cumsum[2 * smoothing:, :] - top_cumsum[:-2 * smoothing, :]) / (2 * smoothing)
+            bot_line[1:-1] = (bot_cumsum[2 * smoothing:, :] - bot_cumsum[:-2 * smoothing, :]) / (2 * smoothing)
 
         return CrackPath(top_line, bot_line)

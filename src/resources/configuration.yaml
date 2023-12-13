@@ -1,12 +1,12 @@
 crack_generation_parameters: 
     crack_dimension_parameters: 
-        width: 5.
-        depth: 100.
+        width: 8.
+        depth: 50.
         depth_resolution: 5
-        sigma: 1.
+        sigma: 0.3
         width_stds_offset: 2.
     crack_path_parameters: 
-        step_size: 2.
+        step_size: 3.
         gradient_influence: 0.5
         width_update_chance: 0.1
         breakthrough_chance: 0.1
@@ -16,7 +16,7 @@ crack_generation_parameters:
         max_width_grow_factor: 0.2
         start_pointiness: 0
         end_pointiness: 2
-        smoothing: 1
+        smoothing: 4
         distance_improvement_threshold: 0.1
     crack_trajectory_parameters: 
         along_bottom_chance: 0.167
@@ -82,13 +82,13 @@ scene_generation_parameters:
                 min: -0.2
                 max: 0.2
             y:
-                min: -0.4
-                max: -0.8
+                min: -2.0
+                max: -1.0
             z:
                 min: -0.2
                 max: 0.2
     label_generation:
-        patches: 1
+        patches: 3
         thresholding:
             min_active_pixels: 50
             min_threshold: 70

@@ -10,7 +10,7 @@ from crack_generation.models.surface.surface import Surface
 from crack_generation.operations import ObjFileExporter
 from dataset_generation.operations.obj import ObjImporter
 
-CRACK_WALL_DISPLACEMENT_PERCENT = 0.5
+CRACK_WALL_DISPLACEMENT_PERCENT = 0.8
 
 
 def apply_transformations(crack: bpy.types.Object):
