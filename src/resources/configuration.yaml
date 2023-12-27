@@ -16,6 +16,7 @@ crack_generation_parameters:
         max_width_grow_factor: 0.2
         start_pointiness: 0
         end_pointiness: 2
+        smoothing_type: moving_average
         smoothing: 4
         distance_improvement_threshold: 0.1
     crack_trajectory_parameters: 
