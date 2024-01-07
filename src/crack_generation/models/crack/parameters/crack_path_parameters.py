@@ -27,5 +27,6 @@ class CrackPathParameters:
     ##
     start_pointiness: int  # number of steps that should decrease in width at the start of the crack
     end_pointiness: int  # number of steps that should decrease in width at the end of the crack
+    smoothing_type: str  # either 'gaussian' for 1D Gaussian smoothing or 'moving_average' for moving average smoothing
     smoothing: int  # Gaussian kernel size for 1D smoothing
     distance_improvement_threshold: float  # minimum value the distance to the start has to increase per step to not be filtered out

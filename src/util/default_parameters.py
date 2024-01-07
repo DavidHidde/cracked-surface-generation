@@ -20,6 +20,7 @@ DEFAULT_PARAMETERS = CrackGenerationParameters(
         max_width_grow_factor=0.2,
         start_pointiness=0,
         end_pointiness=0,
+        smoothing_type='gaussian',
         smoothing=1,
         distance_improvement_threshold=0.1
     ),

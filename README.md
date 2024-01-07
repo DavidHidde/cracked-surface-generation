@@ -98,7 +98,7 @@ The framework uses a YAML file for setting most of the parameters. Please take a
 | --- sigma                 | float        | Standard deviation of the Gaussian depth distribution                                       |
 | --- width_stds_offset     | float        | Offset of width points in standard deviations                                               |
 | -- crack_path_parameters    | float        | Gradient ascent step size                                                                   |
-| --- step_size             | float        | Gradient ascent step size                                                ƒ                   |
+| --- step_size             | float        | Gradient ascent step size                                                                   |
 | --- gradient_influence    | float        | Percent of how much of the gradient is used for path generation.                            |
 | --- width_update_chance   | float        | Percent chance for the width to be updated                                                  |
 | --- breakthrough_chance   | float        | Percent chance to ignore the gradient direction                                             |
@@ -108,6 +108,7 @@ The framework uses a YAML file for setting most of the parameters. Please take a
 | --- max_width_grow_factor | float        | Percent of how much of the current width the width is allowed to grow                       |
 | --- start_pointiness      | int          | Number of width grow steps to perform at the beginning of the crack                         |
 | --- end_pointiness        | int          | Number of width grow steps to perform at the end of the crack                               |
+| --- smoothing_type        | str          | Type of smoothing, `gaussian` for 1D Gaussian smoothing and `moving_average` for moving average smoothing |
 | --- smoothing             | int          | Size of the 1D Gaussian smoothing kernels                                                   |
 | --- distance_improvement_threshold | float | Threshold for the distance gradient for points to be filtered out                           |
 | -- crack_trajectory_parameters | float    | Percent chance of the pivot point appearing along the bottom                                |
@@ -159,12 +160,6 @@ The framework uses a YAML file for setting most of the parameters. Please take a
 | -- patches                  | int          | Number of patches to generate. 1 does not use the patch approach                            |
 | -- thresholding             |             |                                                                                            |
 | --- min_active_pixels      | int          | Minimum number of pixels that need to be active in a label for it to not get rejected       |
-| --- min_rgb_color          |             |                                                                                            |
-| ---- r                    | int          | Minimum red value for thresholding                                                          |
-| ---- g                    | int          | Minimum green value for thresholding                                                        |
-| ---- b                    | int          | Minimum blue value for thresholding                                                         |
-| --- max_rgb_color          |             |                                                                                            |
-| ---- r                    | int          | Maximum red value for thresholding                                                          |
-| ---- g                    | int          | Maximum green value for thresholding                                                        |
-| ---- b                    | int          | Maximum blue value for thresholding                                                         |
-
+| --- min_threshold         | int           | Minimum grayscale value for iterative thresholding                                          |
+| --- max_threshold          | int         | Maximum grayscale value for iterative thresholding                                          |
+| --- increments             | int          | Step size for iterative thresholding                                                       |

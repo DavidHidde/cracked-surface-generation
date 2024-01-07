@@ -1,14 +1,12 @@
 import pickle
-import random
 import traceback
-from copy import deepcopy
 
 import bpy
 import time
 
 from dataset_generation.empty_label_error import EmptyLabelError
-from dataset_generation.operations import SceneClearer, PatchGenerator
-from dataset_generation.operations.generators import SceneParameterGenerator, CrackModelGenerator
+from dataset_generation.operations import SceneClearer
+from dataset_generation.operations.generators import SceneParameterGenerator, CrackModelGenerator, PatchGenerator
 from dataset_generation.operations.loader import ConfigLoader
 from dataset_generation.scene_generator import SceneGenerator
 
@@ -78,7 +76,7 @@ def main(dataset_size: int = 1, config_file_path: str = 'configuration.yaml'):
             print('- Warning: Something went wrong, retrying... -')
             retry_count += 1
 
-    if retry_count >= MAX_RETRIES:
+    if retry_count >= MAX_RETRIES + 1:
         print('- Rendering aborted, out of retries -')
 
     print(f'-- Rendering done after {round((time.time() - start_time) / 60, 2)} minutes --')
