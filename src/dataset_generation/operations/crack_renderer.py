@@ -2,53 +2,45 @@ import os
 
 import bpy
 
-from .label_thresholder import LabelThresholder
-from dataset_generation.models.parameters import LabelGenerationParameters
+from dataset_generation.operations.generators.label_generator import LabelGenerator
+from dataset_generation.models.parameters import LabelGenerationParameters, SceneParameters
 
 
 class CrackRenderer:
     """
     Render operation aimed at rendering a crack and it's label.
     """
-    
-    __label_thresholder: LabelThresholder = LabelThresholder()
+
+    __label_generator: LabelGenerator = LabelGenerator()
     
     def __call__(
             self,
             crack: bpy.types.Object,
             wall: bpy.types.Object,
             label_parameters: LabelGenerationParameters,
-            output_name: str
+            scene_parameters: SceneParameters
     ) -> None:
         """
         Render the current scene with and without the crack marker to a specified
         file name. This name should be without the image extension.
         """
         output_dir = os.path.dirname(bpy.data.filepath)
-        base_file_path = os.path.join(output_dir, f'{output_name}.png')
-        label_file_path = os.path.join(output_dir, f'{output_name}-label.png')
+        base_file_path = os.path.join(output_dir, f'{scene_parameters.output_file_name}.png')
+        label_file_path = os.path.join(output_dir, f'{scene_parameters.output_file_name}-label.png')
 
-        # First pass: Render without marker
-        crack.hide_render = True
-        wall.modifiers['crack_difference'].object = crack
-        crack.modifiers['crack_intersect'].object = None
-        bpy.context.scene.render.filepath = os.path.join(output_dir, base_file_path)
-        bpy.ops.render.render(write_still=True)
-        
-        # Second pass: Render with marker
-        crack.hide_render = False
-        wall.modifiers['crack_difference'].object = None
-        crack.modifiers['crack_intersect'].object = wall
+        # First pass: Render with marker
+        old_aa_filter = bpy.context.scene.cycles.filter_width
+        bpy.context.scene.cycles.filter_width = 0.01
+
+        wall.data.materials[1] = scene_parameters.crack_material
         bpy.context.scene.render.filepath = label_file_path
-        
-        # Turn off HDRI
-        mix_node = bpy.data.worlds['World'].node_tree.nodes['Mix']
-        mix_node.inputs[0].default_value = 1.
-        
         bpy.ops.render.render(write_still=True)
         
-        # Turn HDRI back on
-        mix_node.inputs[0].default_value = 0.
+        # Second pass: Render the crack
+        bpy.context.scene.cycles.filter_width = old_aa_filter
+        wall.data.materials[1] = scene_parameters.wall_material
+        bpy.context.scene.render.filepath = base_file_path
+        bpy.ops.render.render(write_still=True)
         
-        # Threshold the image
-        self.__label_thresholder(label_file_path, label_parameters)
+        # Generate the label using the diff
+        self.__label_generator(base_file_path, label_file_path, label_parameters)

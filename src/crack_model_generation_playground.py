@@ -46,7 +46,7 @@ def main():
     # Load surface file
     parameters = DEFAULT_PARAMETERS
     with open('resources/surface.dump', 'rb') as surface_dump:
-        surface = pickle.load(surface_dump)
+        surface: Surface = pickle.load(surface_dump)
 
     # Initial plot
     fig, ax = plt.subplots(figsize=(16, 5), dpi=100, subplot_kw={"projection": "3d"})

@@ -43,10 +43,12 @@ class SceneGenerator:
             parameters.camera_translation
         )
 
-        # Make all dependent objects visible for the render
+        # Make all dependent objects visible for the render and set the crack in the wall
         wall.hide_render = False
+        crack.hide_render = True
+        wall.modifiers['crack_difference'].object = crack
         for obj in parameters.wall_set.other_objects:
             obj.hide_render = False
 
         # Start rendering
-        self.__crack_renderer(crack, wall, config.label_parameters, parameters.output_file_name)
+        self.__crack_renderer(crack, wall, config.label_parameters, parameters)
