@@ -163,3 +163,7 @@ The framework uses a YAML file for setting most of the parameters. Please take a
 | --- min_threshold         | int           | Minimum grayscale value for iterative thresholding                                          |
 | --- max_threshold          | int         | Maximum grayscale value for iterative thresholding                                          |
 | --- increments             | int          | Step size for iterative thresholding                                                       |
+
+## Generated datasets
+
+The datasets generated using the test configurations in the `resources` folder can be found on [HuggingFace](https://huggingface.co/datasets/DavidHidde/synthetic-masonry-surfaces). This includes the datasets generated using the `moving_average` configurations.
