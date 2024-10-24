@@ -12,13 +12,13 @@ The datasets generated using this method are originall tested using the [network
 
 The main crack generation can be tested through the playground scripts [`crack_path_generation_playground.py`](src/crack_path_generation_playground.py) [`crack_model_generation_playground.py`](src/crack_model_generation_playground.py), which allow for testing the path generation and model generation by tweaking some parameters in a UI. The paramters that aren't exposed (like trajectory generation and the surface) can be found in the [`default_parameters.py`](src/util/default_parameters.py) and the serialized `Surface` file `surface.dump`. Note that a new surface dump can be created by setting `DUMP_SURFACE` in [`generate_dataset.py`](src/generate_dataset.py).  
 
-For testing the dataset generation, you can simply run [`blender_start_render_script.py`](src/resources/blender_start_render_script.py) from within Blender to run the script for 1 image and with the default [`configuration.yaml`](src/resources/configuration.yaml). To run the script in the background for a set dataset size and using a set configuration, you can run it from a terminal:
+For testing the dataset generation, you can simply run [`blender_start_render_script.py`](src/blender_start_render_script.py) from within Blender to run the script for 1 image and with the default [`configuration.yaml`](src/resources/configuration.yaml). To run the script in the background for a set dataset size and using a set configuration, you can run it from a terminal:
 
 ```bash
-blender scene.blend --background --python blender_start_render_script.py -- -c <data_set_size> -p <configuration yaml file path>
+blender resources/scene.blend -b -P blender_start_render_script.py -- --cycles-device <device> -c <dataset_size> -p <configuration yaml file path>
 ```
 
-where the argument `-c` is used to set the desired dataset size and `-p` is the path to the configuration file that should be used.
+where the `<device>` is one of `[CPU, CUDA, OPTIX, HIP, ONEAPI, METAL]`, argument `-c` is used to set the desired dataset size and `-p` is the path to the configuration file that should be used.
 
 ### The `scene.blend` features
 
@@ -32,15 +32,15 @@ The framework also contains materials for the walls. These materials use the bri
 
 ## Requirements
 
-* Blender >= 3.6.2, Blender versions past 3.6.5 have not been tested.
+* Blender >= 3.6.2, Blender versions past 4.2.3 have not been tested.
 * Python >= 3.10, Python versions past 3.11 have not been tested
 
-The Python dependencies for the source code can be installed using [src/requirements.txt](src/requirements.txt).  
+The Python dependencies for the source code can be installed using [src/dev_requirements.txt](src/dev_requirements.txt).  
 
 To install all data generation dependencies, simply run:
 
 ```bash
-pip install -r src/requirements.txt
+pip install -r dev_requirements.txt
 ```
 
 ### Blender
@@ -48,7 +48,7 @@ pip install -r src/requirements.txt
 To install the dependencies into your Blender install, please run:
 
 ```bash
-blender scene.blend --background --python blender_find_python_install
+blender -b -P blender_install_dependencies.py
 ```
 
 to find your Blender Python install. This command will also instruct how to install the requirements.

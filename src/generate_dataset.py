@@ -14,7 +14,7 @@ DUMP_SURFACE = False
 MAX_RETRIES = 5
 
 
-def main(dataset_size: int = 1, config_file_path: str = 'configuration.yaml'):
+def main(dataset_size: int = 1, config_file_path: str = 'resources/configuration.yaml'):
     """
     Main entrypoint
     """
