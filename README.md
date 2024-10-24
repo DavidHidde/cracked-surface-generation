@@ -10,7 +10,7 @@ The datasets generated using this method are originall tested using the [network
 
 ## Usage
 
-The main crack generation can be tested through the playground scripts [`crack_path_generation_playground.py`](src/crack_path_generation_playground.py) [`crack_model_generation_playground.py`](src/crack_model_generation_playground.py), which allow for testing the path generation and model generation by tweaking some parameters in a UI. The paramters that aren't exposed (like trajectory generation and the surface) can be found in the [`default_parameters.py`](src/util/default_parameters.py) and the serialized `Surface` file `surface.dump`. Note that a new surface dump can be created by setting `DUMP_SURFACE` in [`generate_dataset.py`](src/generate_dataset.py).  
+The main crack generation can be tested through the playground scripts [`crack_path_generation_playground.py`](src/crack_path_generation_playground.py) and [`crack_model_generation_playground.py`](src/crack_model_generation_playground.py), which allow for testing the path generation and model generation by tweaking some parameters in a UI. The parameters that aren't exposed (like trajectory generation and the surface) can be found in the [`default_parameters.py`](src/util/default_parameters.py) and the serialized `Surface` file `surface.dump`. Note that a new surface dump can be created by setting `DUMP_SURFACE` in [`generate_dataset.py`](src/generate_dataset.py).  
 
 For testing the dataset generation, you can simply run [`blender_start_render_script.py`](src/blender_start_render_script.py) from within Blender to run the script for 1 image and with the default [`configuration.yaml`](src/resources/configuration.yaml). To run the script in the background for a set dataset size and using a set configuration, you can run it from a terminal:
 
@@ -51,7 +51,7 @@ To install the dependencies into your Blender install, please run:
 blender -b -P blender_install_dependencies.py
 ```
 
-to find your Blender Python install. This command will also instruct how to install the requirements.
+to install the necessary dependencies into Blender. Note that some dependency version may differ between Blender and your own install due to the pre-installed modules in Blender's Python.
 
 To use the default configuration parameters, the same HDRIs need to be added. The installation of the HDRIs needs to be done manually. For this, the following HDRIs need to be downloaded and inserted into `scene.blend` and set in the config:
 
