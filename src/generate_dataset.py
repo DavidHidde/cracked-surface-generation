@@ -11,12 +11,10 @@ from dataset_generation.operations.loader import ConfigLoader
 from dataset_generation.scene_generator import SceneGenerator
 
 DUMP_SURFACE = False
-MAX_RETRIES = 5
 
-
-def main(dataset_size: int = 1, config_file_path: str = 'resources/configuration.yaml'):
+def run(dataset_size: int, max_retries: int, config_file_path: str):
     """
-    Main entrypoint
+    Main entrypoint. Starts the dataset generation using a specific config, dataset size and maximum number of retries.
     """
 
     print('-- Starting rendering pipeline... --')
@@ -49,7 +47,7 @@ def main(dataset_size: int = 1, config_file_path: str = 'resources/configuration
     """
     idx = 0
     retry_count = 0
-    while idx < dataset_size and retry_count < MAX_RETRIES + 1:
+    while idx < dataset_size and retry_count <= max_retries:
         try:
             file_name = f'crack-{idx}'
             scene_clearer(config)
@@ -76,16 +74,7 @@ def main(dataset_size: int = 1, config_file_path: str = 'resources/configuration
             print('- Warning: Something went wrong, retrying... -')
             retry_count += 1
 
-    if retry_count >= MAX_RETRIES + 1:
+    if retry_count > max_retries:
         print('- Rendering aborted, out of retries -')
 
     print(f'-- Rendering done after {round((time.time() - start_time) / 60, 2)} minutes --')
-
-
-# Main entrypoint
-if __name__ == '__main__':
-    try:
-        main()
-    except Exception as error:
-        print('Something caused the script to crash')
-        print(error)

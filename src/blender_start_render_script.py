@@ -4,9 +4,6 @@ import bpy
 import os
 import sys
 
-
-SCRIPT_NAME = 'generate_dataset.py'
-
 # Parse arguments -- from the background_job.py template
 argv = sys.argv
 if "--" not in argv:
@@ -22,11 +19,15 @@ usage_text = (
 parser = argparse.ArgumentParser(description=usage_text)
 
 parser.add_argument(
-    "-c", "--count", dest="count", type=int, required=False, default=1,
-    help="The data set size.",
+    "-s", "--size", dest="size", type=int, required=False, default=1,
+    help="The dataset size.",
 )
 parser.add_argument(
-    "-p", "--config", dest="config", type=str, required=False, default='configuration.yaml',
+    "-r", "--retries", dest="max_retries", type=int, required=False, default=5,
+    help="The maximum number of retries before the rendering should stop.",
+)
+parser.add_argument(
+    "-c", "--config", dest="config", type=str, required=False, default='configuration.yaml',
     help="The path to the configuration file.",
 )
 parser.add_argument(
@@ -48,4 +49,4 @@ for key in modules:
     importlib.reload(sys.modules[key])
 
 importlib.reload(generate_dataset)
-generate_dataset.main(args.count, args.config)
+generate_dataset.run(args.size, args.max_retries, args.config)
