@@ -36,7 +36,7 @@ class PatchGenerator:
     
                 if np.sum(label_patch) > parameters.min_active_pixels:
                     img_patch = image[start_y:end_y, start_x:end_x]
-                    cv2.imwrite(f'crack-{idx + count}.png', img_patch)
-                    cv2.imwrite(f'crack-{idx + count}-label.png', label_patch)
+                    cv2.imwrite(os.path.join(images_directory, f'crack-{idx + count}.png'), img_patch)
+                    cv2.imwrite(os.path.join(labels_directory, f'crack-{idx + count}.png'), label_patch)
                     count += 1
         return count

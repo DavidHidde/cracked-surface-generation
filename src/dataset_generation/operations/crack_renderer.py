@@ -31,15 +31,11 @@ class CrackRenderer:
         label_file_path = os.path.join(output_dir, f'{os.path.join(labels_directory, scene_parameters.output_file_name)}.png')
 
         # First pass: Render with marker
-        old_aa_filter = bpy.context.scene.cycles.filter_width
-        bpy.context.scene.cycles.filter_width = 0.01
-
         wall.data.materials[1] = scene_parameters.crack_material
         bpy.context.scene.render.filepath = label_file_path
         bpy.ops.render.render(write_still=True)
         
         # Second pass: Render the crack
-        bpy.context.scene.cycles.filter_width = old_aa_filter
         wall.data.materials[1] = scene_parameters.wall_material
         bpy.context.scene.render.filepath = base_file_path
         bpy.ops.render.render(write_still=True)

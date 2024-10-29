@@ -17,6 +17,15 @@ class ObjImporter:
             directory=directory,
             files=paths
         )
-        # We assume the file ends in .obj
-        return [bpy.data.objects[file_name[:-4]] for file_name in files]
+        objects = [bpy.data.objects[file_name[:-4]] for file_name in files] # We assume the file ends in .obj
+
+        # Move the objects straight to the root collection
+        scene_collection = bpy.context.scene.collection
+        for obj in objects:
+            if scene_collection not in obj.users_collection:
+                for collection in obj.users_collection:
+                    collection.objects.unlink(obj)
+                scene_collection.objects.link(obj)
+
+        return objects
         

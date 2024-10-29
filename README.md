@@ -15,20 +15,16 @@ The main crack generation can be tested through the playground scripts [`crack_p
 For testing the dataset generation, you can simply run [`blender_start_render_script.py`](src/blender_start_render_script.py) from within Blender to run the script for 1 image and with the default [`configuration.yaml`](src/resources/configuration.yaml). To run the script in the background for a set dataset size and using a set configuration, you can run it from a terminal:
 
 ```bash
-blender resources/scene.blend -b -P blender_start_render_script.py -- --cycles-device <device> -c <dataset_size> -p <configuration yaml file path>
+blender resources/scene.blend -b -P blender_start_render_script.py -- --cycles-device <device> -s <dataset_size> -c <configuration yaml file path> [-r <retries> -o <output>]
 ```
 
-where the `<device>` is one of `[CPU, CUDA, OPTIX, HIP, ONEAPI, METAL]`, argument `-c` is used to set the desired dataset size and `-p` is the path to the configuration file that should be used.
+where the `<device>` is one of `[CPU, CUDA, OPTIX, HIP, ONEAPI, METAL]`, argument `-s` is used to set the desired dataset size and `-c` is the path to the configuration file that should be used. The optional `-r` and `-o` options serve to control the maximum number of render retries and output directory respectively.
 
-### The `scene.blend` features
+### `scene.blend` features
 
-The Blender source file contains a couple of features that the framework is designed around. The most important of these are:
-
-* The framework expects both an object for a wall and its mortar. These can be generated through the Geometry Nodes modifier `Wall v3` which can be applied to any cube-like geometry. Be sure to always apply the object scale when using this modifier.
-* Wall models are expected to have a boolean modifier called `crack_difference`.
-* The world texture ends in a mix node, which is used to turn the HDRI on and off.
-
-The framework also contains materials for the walls. These materials use the brick texture from Blender, which is lined up to work with the current dimensions used for bricks (0.21 x 0.05 with a mortar size of 0.1). The default settings for the `Wall v3` geometry nodes modifier do line up correctly with the material, but changing the dimension settings in the nodes modifier will cause the material to not line up correctly anymore. This also happens when using a different width : height ratio for the base model. Finally, the last quirk to keep in mind is that a collection outside of the safe collections should be selected when starting dataset generation, as the imported crack objects will be added to the selected collection.
+The Blender source file `scene.blend` contains a couple of features which are handy to set up a semi-realistic scene quickly. Materials, a geometry nodes model for walls as well as some models used for testing.
+Note that currently the framework relies on separate wall and mortar geometries which can both be generated using the `Wall v3` geometry nodes modifier. Make sure to apply this modifier as otherwise the framework won't work correctly.  
+Additionally, note that the materials use the brick texture from Blender, which is lined up to work with the current dimensions used for bricks (0.21 x 0.05 with a mortar size of 0.1). The default settings for the `Wall v3` geometry nodes modifier do line up correctly with the material, but changing the dimension settings in the nodes modifier will cause the material to not line up correctly anymore. This also happens when using a different width : height ratio for the base model.
 
 ## Requirements
 

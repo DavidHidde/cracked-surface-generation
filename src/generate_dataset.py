@@ -11,17 +11,15 @@ from dataset_generation.operations.generators import SceneParameterGenerator, Cr
 from dataset_generation.operations.loader import ConfigLoader
 from dataset_generation.scene_generator import SceneGenerator
 
-DUMP_SURFACE = False
-
 def run(dataset_size: int, max_retries: int, config_file_path: str, output_dir: str):
     """
     Main entrypoint. Starts the dataset generation using a specific config, dataset size and maximum number of retries.
     """
 
-    print('-- Starting rendering pipeline... --')
     start_time = time.time()
 
-    # Setup of constants
+    print('-- Preloading Blender data... --')
+    # Setup of constant operators
     scene_clearer = SceneClearer()
     patch_generator = PatchGenerator()
     crack_generator = CrackModelGenerator()
@@ -29,12 +27,15 @@ def run(dataset_size: int, max_retries: int, config_file_path: str, output_dir: 
     scene_parameters_generator = SceneParameterGenerator()
     config_loader = ConfigLoader()
 
+    # Create output directories
     config = config_loader(config_file_path, output_dir)
     Path(os.path.join(config.output_directory, 'images')).mkdir(exist_ok=True, parents=True)
     Path(os.path.join(config.output_directory, 'labels')).mkdir(exist_ok=True, parents=True)
 
+    # Set render settings
     bpy.context.scene.render.resolution_x = max(config.label_parameters.num_patches, 1) * 224
     bpy.context.scene.render.resolution_y = max(config.label_parameters.num_patches, 1) * 224
+    bpy.context.scene.render.image_settings.file_format = 'PNG'
 
     """
     Main generation loop:
@@ -44,6 +45,7 @@ def run(dataset_size: int, max_retries: int, config_file_path: str, output_dir: 
         - Generate a new scene and render.
         - Divide into patches if needed.
     """
+    print('-- Starting rendering pipeline... --')
     idx = 0
     retry_count = 0
     crack_obj_path = os.path.join(config.output_directory, 'crack.obj')
@@ -60,7 +62,7 @@ def run(dataset_size: int, max_retries: int, config_file_path: str, output_dir: 
             scene_generator(crack, config, scene_parameters)
 
             if config.label_parameters.num_patches > 1:
-                idx += patch_generator(file_name, config.label_parameters)
+                idx += patch_generator(file_name, config.output_images_directory, config.output_labels_directory, config.label_parameters)
             else:
                 idx += 1
 
