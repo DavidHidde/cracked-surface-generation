@@ -31,6 +31,10 @@ parser.add_argument(
     help="The path to the configuration file.",
 )
 parser.add_argument(
+    "-o", "--output", dest="output_dir", type=str, required=False, default='',
+    help="The output directory for the new dataset.",
+)
+parser.add_argument(
     "--cycles-device", dest="cycles_device", type=str, required=False, default='CPU',
     help="The rendering device for Cycles to use.",
 )
@@ -49,4 +53,4 @@ for key in modules:
     importlib.reload(sys.modules[key])
 
 importlib.reload(generate_dataset)
-generate_dataset.run(args.size, args.max_retries, args.config)
+generate_dataset.run(args.size, args.max_retries, args.config, args.output_dir)

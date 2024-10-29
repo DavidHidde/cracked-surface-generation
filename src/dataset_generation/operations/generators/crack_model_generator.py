@@ -43,8 +43,8 @@ class CrackModelGenerator:
         """
         Create a model, export it to a file
         """
-        file_parts = file_path.split(os.pathsep)
-        file_dir = os.path.join(os.getcwd(), *file_parts[:-1])
+        file_parts = file_path.split(os.sep)
+        file_dir = os.sep.join(file_parts[:-1])
         file_name = file_parts[-1]
 
         model = (CrackGenerator())(crack_parameters, surface)

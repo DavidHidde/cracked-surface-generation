@@ -51,4 +51,11 @@ class SceneGenerator:
             obj.hide_render = False
 
         # Start rendering
-        self.__crack_renderer(crack, wall, config.label_parameters, parameters)
+        self.__crack_renderer(
+            crack,
+            wall,
+            config.label_parameters,
+            parameters,
+            config.output_images_directory,
+            config.output_labels_directory
+        )
