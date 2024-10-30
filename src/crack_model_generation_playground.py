@@ -1,3 +1,5 @@
+from argparse import ArgumentParser
+
 import math
 import pickle
 
@@ -45,7 +47,11 @@ def update_plot(parameters: CrackGenerationParameters, surface: Surface, ax: Axe
 def main():
     # Load surface file
     parameters = DEFAULT_PARAMETERS
-    with open('resources/surface.dump', 'rb') as surface_dump:
+
+    parser = ArgumentParser()
+    parser.add_argument('f', '--file', type=str, required=True, help='Path to the .surface file to test on.')
+    filename = parser.parse_args().file
+    with open(filename, 'rb') as surface_dump:
         surface: Surface = pickle.load(surface_dump)
 
     # Initial plot

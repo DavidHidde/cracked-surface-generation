@@ -43,8 +43,8 @@ class CrackModelGenerator:
         """
         Create a model, export it to a file
         """
-        file_parts = file_path.split(os.pathsep)
-        file_dir = os.path.join(os.getcwd(), *file_parts[:-1])
+        file_parts = file_path.split(os.sep)
+        file_dir = os.sep.join(file_parts[:-1])
         file_name = file_parts[-1]
 
         model = (CrackGenerator())(crack_parameters, surface)
@@ -53,7 +53,7 @@ class CrackModelGenerator:
 
         # Set to the correct position
         crack_obj.rotation_euler = [np.pi / 2, 0., 0.]
-        crack_obj.scale = [1. / 1000] * 3
+        crack_obj.scale = [1. / surface.map.grid_factor] * 3
         crack_obj.location += Vector(
             [
                 model.mesh.vertex_means[0],

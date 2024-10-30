@@ -46,9 +46,27 @@ class SceneGenerator:
         # Make all dependent objects visible for the render and set the crack in the wall
         wall.hide_render = False
         crack.hide_render = True
-        wall.modifiers['crack_difference'].object = crack
+        wall.modifiers.get('crack_difference', self.add_crack_modifier(wall)).object = crack
         for obj in parameters.wall_set.other_objects:
             obj.hide_render = False
 
         # Start rendering
-        self.__crack_renderer(crack, wall, config.label_parameters, parameters)
+        self.__crack_renderer(
+            crack,
+            wall,
+            config.label_parameters,
+            parameters,
+            config.output_images_directory,
+            config.output_labels_directory
+        )
+
+    def add_crack_modifier(self, wall: bpy.types.Object):
+        """
+        Create a new boolean modifier to handle creating a crack in the wall and return it.
+        """
+        modifier = wall.modifiers.new(name='crack_difference', type='BOOLEAN')
+        modifier.operation = 'DIFFERENCE'
+        modifier.operand_type = 'OBJECT'
+        modifier.solver = 'EXACT'
+        modifier.show_render = True
+        return modifier

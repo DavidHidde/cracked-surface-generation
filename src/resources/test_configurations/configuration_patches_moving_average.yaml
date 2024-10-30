@@ -50,8 +50,7 @@ scene_generation_parameters:
             - Yellow brick - gray mortar
         scenes:
             - wall: Door wall
-              mortar: Door mortar
-              other: 
+              other:
                   - Pavement 2
                   - Plastic door
               wall_properties: 
@@ -59,8 +58,7 @@ scene_generation_parameters:
                   brick_height: 0.05
                   mortar_size: 0.01
             - wall: Base wall
-              mortar: Base mortar
-              other: 
+              other:
                   - Pavement
               wall_properties: 
                   brick_width: 0.21
