@@ -1,8 +1,15 @@
 import argparse
-
-import bpy
 import os
+import bpy
+
 import sys
+
+# Add to path
+base_dir = os.path.join(os.path.dirname(bpy.data.filepath), '..')
+if base_dir not in sys.path:
+    sys.path.append(base_dir)
+
+import generate_dataset
 
 # Parse arguments -- from the background_job.py template
 argv = sys.argv
@@ -27,7 +34,7 @@ parser.add_argument(
     help="The maximum number of retries before the rendering should stop.",
 )
 parser.add_argument(
-    "-c", "--config", dest="config", type=str, required=False, default='configuration.yaml',
+    "-c", "--config", dest="config", type=str, required=False, default='resources/configuration.yaml',
     help="The path to the configuration file.",
 )
 parser.add_argument(
@@ -38,19 +45,5 @@ parser.add_argument(
     "--cycles-device", dest="cycles_device", type=str, required=False, default='CPU',
     help="The rendering device for Cycles to use.",
 )
-args = parser.parse_args(argv)  # In this example we won't use the args
-
-# Add to path
-base_dir = os.path.join(os.path.dirname(bpy.data.filepath), '..')
-if base_dir not in sys.path:
-    sys.path.append(base_dir)
-
-# Reload all submodules - useful when running script from Blender itself
-import generate_dataset
-import importlib
-modules = [key for key in sys.modules.keys() if 'dataset_generation' in key or 'crack_generation' in key]
-for key in modules:
-    importlib.reload(sys.modules[key])
-
-importlib.reload(generate_dataset)
+args = parser.parse_args(argv)
 generate_dataset.run(args.size, args.max_retries, args.config, args.output_dir)

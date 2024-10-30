@@ -53,7 +53,7 @@ class CrackModelGenerator:
 
         # Set to the correct position
         crack_obj.rotation_euler = [np.pi / 2, 0., 0.]
-        crack_obj.scale = [1. / 1000] * 3
+        crack_obj.scale = [1. / surface.map.grid_factor] * 3
         crack_obj.location += Vector(
             [
                 model.mesh.vertex_means[0],

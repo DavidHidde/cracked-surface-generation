@@ -23,7 +23,7 @@ where the `<device>` is one of `[CPU, CUDA, OPTIX, HIP, ONEAPI, METAL]`, argumen
 ### `scene.blend` features
 
 The Blender source file `scene.blend` contains a couple of features which are handy to set up a semi-realistic scene quickly. Materials, a geometry nodes model for walls as well as some models used for testing.
-Note that currently the framework relies on separate wall and mortar geometries which can both be generated using the `Wall v3` geometry nodes modifier. Make sure to apply this modifier as otherwise the framework won't work correctly.  
+Note that the `wall` property in the config assumes a single object represent the geometry to be used for crack generation. When using the `Wall V3` geometry nodes modifier to create this geometry, make sure to apply the modifier as otherwise the framework won't work correctly.  
 Additionally, note that the materials use the brick texture from Blender, which is lined up to work with the current dimensions used for bricks (0.21 x 0.05 with a mortar size of 0.1). The default settings for the `Wall v3` geometry nodes modifier do line up correctly with the material, but changing the dimension settings in the nodes modifier will cause the material to not line up correctly anymore. This also happens when using a different width : height ratio for the base model.
 
 ## Requirements
@@ -120,7 +120,6 @@ The framework uses a YAML file for setting most of the parameters. Please see [`
 | `materials`           | list[str]    | Names of the materials to use for the wall                                             |
 | `scenes`              | list[object] | Set of objects that describe a scene                                                   |
 | `wall`                | str          | Name of the wall object                                                                |
-| `mortar`              | str          | Name of the mortar object of the wall                                                  |
 | `other`               | list[str]    | Names of other objects relevant to the scene                                           |
 | `brick_width`         | float        | Width of the bricks of the wall                                                        |
 | `brick_height`        | float        | Height of the bricks of the wall                                                       |
