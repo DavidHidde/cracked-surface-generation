@@ -53,6 +53,8 @@ blender -b -P blender_install_dependencies.py
 
 to install the necessary dependencies into Blender. Note that some dependency version may differ between Blender and your own install due to the pre-installed modules in Blender's Python.
 
+In some cases, installing dependencies into Blender's Python install is not possible, in which case the script will run but will install the dependencies elsewhere. Blender provides options like [using the system install](https://docs.blender.org/manual/en/latest/advanced/command_line/arguments.html#python-options) or the use of [environment variables](https://docs.blender.org/manual/en/latest/advanced/command_line/arguments.html#environment-variables) to fix this.  
+
 To use the [default configuration parameters](src/resources/configuration.yaml), the same HDRIs need to be added. The installation of the HDRIs needs to be done manually. For this, the following HDRIs need to be downloaded and inserted into your `.blend` file:
 
 * https://polyhaven.com/a/pond_bridge_night
