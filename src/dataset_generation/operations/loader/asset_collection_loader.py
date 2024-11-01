@@ -17,7 +17,6 @@ class AssetCollectionLoader:
         """
         return AssetCollection(
             asset_collection_data['safe_collections'],
-            bpy.data.materials[asset_collection_data['label_material']],
             [bpy.data.images[hdri_name] for hdri_name in asset_collection_data['hdris']],
             [bpy.data.materials[material_name] for material_name in asset_collection_data['materials']],
             self.__wall_set_loader(asset_collection_data['scenes'])

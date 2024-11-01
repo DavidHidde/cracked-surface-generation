@@ -9,11 +9,7 @@ class SceneParameterGenerator:
     Generator class for (mostly randomized) scene parameters.
     """
 
-    def __call__(
-            self,
-            output_file_name: str,
-            config: Configuration
-    ) -> SceneParameters:
+    def __call__(self, config: Configuration) -> SceneParameters:
         """
         Generate a new set of parameters.
         """
@@ -48,9 +44,7 @@ class SceneParameterGenerator:
         return SceneParameters(
             np.random.choice(config.asset_collection.scenes),
             np.random.choice(config.asset_collection.wall_materials),
-            config.asset_collection.label_material,
             np.random.choice(config.asset_collection.world_textures),
             tuple(camera_translation),
             tuple(camera_rotation),
-            output_file_name
         )

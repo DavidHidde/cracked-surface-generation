@@ -1,9 +1,10 @@
+import os
+
 import bpy
 
 from dataset_generation.models import Configuration
 from dataset_generation.models.parameters import SceneParameters
-from dataset_generation.operations import CrackRenderer
-from dataset_generation.operations.obj import CameraAligner, ObjDuplicator
+from dataset_generation.operations.obj import CameraAligner
 
 
 class SceneGenerator:
@@ -12,13 +13,11 @@ class SceneGenerator:
     """
 
     __camera_aligner: CameraAligner = CameraAligner()
-    __crack_renderer: CrackRenderer = CrackRenderer()
-    __obj_duplicator: ObjDuplicator = ObjDuplicator()
 
     def __call__(
             self,
             crack: bpy.types.Object,
-            config: Configuration,
+            camera: bpy.types.Object,
             parameters: SceneParameters
     ) -> None:
         """
@@ -26,18 +25,18 @@ class SceneGenerator:
         - Set all the correct materials
         - Align the camera
         - Make all relevant objects visible
-        - Render the crack
+        - Setup the crack in the wall
         """
         wall = parameters.wall_set.wall
 
         # Set world and object materials
-        crack.data.materials.append(parameters.crack_material)
         wall.data.materials[0] = parameters.wall_material
+        wall.data.materials[1] = parameters.wall_material
         bpy.data.worlds['World'].node_tree.nodes['Environment Texture'].image = parameters.world_texture
 
         # Move camera to object
         self.__camera_aligner(
-            config.camera_parameters.camera_obj,
+            camera,
             crack,
             parameters.camera_rotation,
             parameters.camera_translation
@@ -49,16 +48,6 @@ class SceneGenerator:
         wall.modifiers.get('crack_difference', self.add_crack_modifier(wall)).object = crack
         for obj in parameters.wall_set.other_objects:
             obj.hide_render = False
-
-        # Start rendering
-        self.__crack_renderer(
-            crack,
-            wall,
-            config.label_parameters,
-            parameters,
-            config.output_images_directory,
-            config.output_labels_directory
-        )
 
     def add_crack_modifier(self, wall: bpy.types.Object):
         """

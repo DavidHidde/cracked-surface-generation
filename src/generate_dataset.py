@@ -5,9 +5,8 @@ from pathlib import Path
 import bpy
 import time
 
-from dataset_generation.empty_label_error import EmptyLabelError
-from dataset_generation.operations import SceneClearer
-from dataset_generation.operations.generators import SceneParameterGenerator, CrackModelGenerator, PatchGenerator
+from dataset_generation.operations import SceneClearer, CrackRenderer, CompositorInitializer
+from dataset_generation.operations.generators import SceneParameterGenerator, CrackModelGenerator
 from dataset_generation.operations.loader import ConfigLoader
 from dataset_generation.scene_generator import SceneGenerator
 
@@ -21,7 +20,7 @@ def run(dataset_size: int, max_retries: int, config_file_path: str, output_dir: 
     print('-- Preloading Blender data... --')
     # Setup of constant operators
     scene_clearer = SceneClearer()
-    patch_generator = PatchGenerator()
+    crack_renderer = CrackRenderer()
     crack_generator = CrackModelGenerator()
     scene_generator = SceneGenerator()
     scene_parameters_generator = SceneParameterGenerator()
@@ -29,47 +28,46 @@ def run(dataset_size: int, max_retries: int, config_file_path: str, output_dir: 
 
     # Create output directories
     config = config_loader(config_file_path, output_dir)
-    Path(os.path.join(config.output_directory, 'images')).mkdir(exist_ok=True, parents=True)
-    Path(os.path.join(config.output_directory, 'labels')).mkdir(exist_ok=True, parents=True)
+    Path(os.path.join(config.label_parameters.base_output_directory, 'images')).mkdir(exist_ok=True, parents=True)
+    Path(os.path.join(config.label_parameters.base_output_directory, 'labels')).mkdir(exist_ok=True, parents=True)
 
     # Set render settings
     bpy.context.scene.render.resolution_x = max(config.label_parameters.num_patches, 1) * 224
     bpy.context.scene.render.resolution_y = max(config.label_parameters.num_patches, 1) * 224
-    bpy.context.scene.render.image_settings.file_format = 'PNG'
+    CompositorInitializer()(config.label_parameters)
 
     """
     Main generation loop:
         - Clear the scene.
         - Generate a new crack.
         - Generate new scene parameters.
-        - Generate a new scene and render.
-        - Divide into patches if needed.
+        - Generate a new scene.
+        - Render and divide into patches if needed.
     """
     print('-- Starting rendering pipeline... --')
     idx = 0
     retry_count = 0
-    crack_obj_path = os.path.join(config.output_directory, 'crack.obj')
+    crack_obj_path = os.path.join(config.label_parameters.base_output_directory, 'crack.obj')
     while idx < dataset_size and retry_count <= max_retries:
         try:
             file_name = f'crack-{idx}'
+
             scene_clearer(config)
-            scene_parameters = scene_parameters_generator(file_name, config)
+            scene_parameters = scene_parameters_generator(config)
             crack = crack_generator(
                 config.crack_parameters,
                 scene_parameters.wall_set.surface,
                 crack_obj_path
             )
-            scene_generator(crack, config, scene_parameters)
+            scene_generator(crack, config.camera_parameters.camera_obj, scene_parameters)
 
-            if config.label_parameters.num_patches > 1:
-                idx += patch_generator(file_name, config.output_images_directory, config.output_labels_directory, config.label_parameters)
+            num_rendered = crack_renderer(config.label_parameters, file_name)
+            if num_rendered == 0:
+                print('- Warning: Label was empty, retrying...  -')
+                retry_count += 1
             else:
-                idx += 1
-
-            retry_count = 0
-        except EmptyLabelError:
-            print('- Warning: Label was empty, retrying...  -')
-            retry_count += 1
+                idx += num_rendered
+                retry_count = 0
         except Exception as e:
             print(f'- Error: {e} -')
             print(traceback.format_exc())

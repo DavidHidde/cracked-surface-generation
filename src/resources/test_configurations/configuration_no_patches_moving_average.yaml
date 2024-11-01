@@ -36,8 +36,7 @@ scene_generation_parameters:
             - Base assets 2
             - Walls
             - Walls 2
-        label_material: Marker - foreground
-        hdris: 
+        hdris:
             - pond_bridge_night_4k.exr
             - rotes_rathaus_4k.exr
             - studio_garden_4k.exr
@@ -90,6 +89,6 @@ scene_generation_parameters:
         patches: 1
         thresholding:
             min_active_pixels: 30
-            min_threshold: 70
-            max_threshold: 220
-            increment: 5
+            image_threshold: 0.25
+            uv_threshold: 0.1
+            ao_threshold: 0.25

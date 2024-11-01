@@ -4,11 +4,16 @@ from dataclasses import dataclass
 @dataclass
 class LabelGenerationParameters:
     """
-    Parameters used for rendering labels.
+    Parameters used for setting the compositor and selecting patches.
     """
     
     num_patches: int
+
     min_active_pixels: int
-    min_threshold: int
-    max_threshold: int
-    threshold_increments: int
+    image_threshold: float
+    uv_threshold: float
+    ao_threshold: float
+
+    base_output_directory: str
+    image_output_directory: str
+    label_output_directory: str
