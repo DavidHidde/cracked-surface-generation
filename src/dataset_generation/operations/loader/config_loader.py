@@ -1,7 +1,4 @@
-import os
-
 import yaml
-import bpy
 
 from crack_generation.models.crack.parameters import CrackGenerationParameters, CrackDimensionParameters, \
     CrackPathParameters, CrackTrajectoryParameters
@@ -34,14 +31,11 @@ class ConfigLoader:
             CrackTrajectoryParameters(**data['crack_generation_parameters']['crack_trajectory_parameters'])
         )
 
-        base_output_directory = output_directory if output_directory.startswith('/') else os.path.join(os.getcwd(), output_directory)
+
 
         return Configuration(
             crack_parameters,
             self.__asset_collection_loader(data['scene_generation_parameters']['assets']),
             self.__camera_parameters_loader(data['scene_generation_parameters']['camera_parameters']),
-            self.__label_parameters_loader(data['scene_generation_parameters']['label_generation']),
-            base_output_directory,
-            os.path.join(base_output_directory, 'images'),
-            os.path.join(base_output_directory, 'labels'),
+            self.__label_parameters_loader(data['scene_generation_parameters']['label_generation'], output_directory)
         )

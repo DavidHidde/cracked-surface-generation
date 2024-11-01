@@ -4,8 +4,7 @@ import bpy
 
 from dataset_generation.models import Configuration
 from dataset_generation.models.parameters import SceneParameters
-from dataset_generation.operations import CrackRenderer
-from dataset_generation.operations.obj import CameraAligner, ObjDuplicator
+from dataset_generation.operations.obj import CameraAligner
 
 
 class SceneGenerator:
@@ -14,13 +13,11 @@ class SceneGenerator:
     """
 
     __camera_aligner: CameraAligner = CameraAligner()
-    __crack_renderer: CrackRenderer = CrackRenderer()
-    __obj_duplicator: ObjDuplicator = ObjDuplicator()
 
     def __call__(
             self,
             crack: bpy.types.Object,
-            config: Configuration,
+            camera: bpy.types.Object,
             parameters: SceneParameters
     ) -> None:
         """
@@ -28,7 +25,7 @@ class SceneGenerator:
         - Set all the correct materials
         - Align the camera
         - Make all relevant objects visible
-        - Render the crack
+        - Setup the crack in the wall
         """
         wall = parameters.wall_set.wall
 
@@ -39,7 +36,7 @@ class SceneGenerator:
 
         # Move camera to object
         self.__camera_aligner(
-            config.camera_parameters.camera_obj,
+            camera,
             crack,
             parameters.camera_rotation,
             parameters.camera_translation
@@ -51,16 +48,6 @@ class SceneGenerator:
         wall.modifiers.get('crack_difference', self.add_crack_modifier(wall)).object = crack
         for obj in parameters.wall_set.other_objects:
             obj.hide_render = False
-
-        # Start rendering
-        self.__crack_renderer(
-            crack,
-            wall,
-            config.label_parameters.min_active_pixels,
-            config.output_directory,
-            os.path.join(config.output_images_directory, parameters.output_file_name + '.png'),
-            os.path.join(config.output_labels_directory, parameters.output_file_name + '.png'),
-        )
 
     def add_crack_modifier(self, wall: bpy.types.Object):
         """

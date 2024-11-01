@@ -131,7 +131,7 @@ class CompositorInitializer:
     IMAGE_NAME = 'image-#'
     LABEL_NAME = 'label-#'
 
-    def __call__(self, output_path: str, parameters: LabelGenerationParameters) -> None:
+    def __call__(self, parameters: LabelGenerationParameters) -> None:
         """
         Setup the compositor flow. The compositor saves the image and the label. This function clears the previous nodes.
         """
@@ -158,7 +158,7 @@ class CompositorInitializer:
 
         # Create output
         output_node = tree.nodes.new('CompositorNodeOutputFile')
-        output_node.base_path = output_path
+        output_node.base_path = parameters.base_output_directory
         output_node.format.file_format = 'PNG'
         output_node.file_slots.new(self.LABEL_NAME)
 

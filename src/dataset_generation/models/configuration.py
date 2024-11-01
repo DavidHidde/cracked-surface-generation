@@ -17,7 +17,3 @@ class Configuration:
     asset_collection: AssetCollection
     camera_parameters: CameraParameters
     label_parameters: LabelGenerationParameters
-
-    output_directory: str
-    output_images_directory: str
-    output_labels_directory: str

@@ -18,5 +18,3 @@ class SceneParameters:
 
     camera_translation: tuple[float, float, float]
     camera_rotation: tuple[float, float, float]
-
-    output_file_name: str

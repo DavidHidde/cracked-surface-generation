@@ -13,3 +13,7 @@ class LabelGenerationParameters:
     image_threshold: float
     uv_threshold: float
     ao_threshold: float
+
+    base_output_directory: str
+    image_output_directory: str
+    label_output_directory: str
