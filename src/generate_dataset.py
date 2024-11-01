@@ -7,6 +7,7 @@ import time
 
 from dataset_generation.empty_label_error import EmptyLabelError
 from dataset_generation.operations import SceneClearer
+from dataset_generation.operations.compositor_intializer import CompositorInitializer
 from dataset_generation.operations.generators import SceneParameterGenerator, CrackModelGenerator, PatchGenerator
 from dataset_generation.operations.loader import ConfigLoader
 from dataset_generation.scene_generator import SceneGenerator
@@ -35,7 +36,7 @@ def run(dataset_size: int, max_retries: int, config_file_path: str, output_dir: 
     # Set render settings
     bpy.context.scene.render.resolution_x = max(config.label_parameters.num_patches, 1) * 224
     bpy.context.scene.render.resolution_y = max(config.label_parameters.num_patches, 1) * 224
-    bpy.context.scene.render.image_settings.file_format = 'PNG'
+    CompositorInitializer()(config.output_directory, config.label_parameters)
 
     """
     Main generation loop:

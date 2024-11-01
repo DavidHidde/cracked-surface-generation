@@ -15,8 +15,8 @@ class LabelParametersLoader:
         return LabelGenerationParameters(
             label_parameters_data['patches'],
             threshold_data['min_active_pixels'],
-            threshold_data['min_threshold'],
-            threshold_data['max_threshold'],
-            threshold_data['increment'],
+            threshold_data['image_threshold'],
+            threshold_data['uv_threshold'],
+            threshold_data['ao_threshold'],
         )
     

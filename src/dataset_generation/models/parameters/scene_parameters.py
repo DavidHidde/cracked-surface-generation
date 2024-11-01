@@ -14,8 +14,6 @@ class SceneParameters:
     wall_set: WallSet
 
     wall_material: bpy.types.Material
-    crack_material: bpy.types.Material
-
     world_texture: bpy.types.Image
 
     camera_translation: tuple[float, float, float]

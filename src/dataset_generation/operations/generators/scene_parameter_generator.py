@@ -48,7 +48,6 @@ class SceneParameterGenerator:
         return SceneParameters(
             np.random.choice(config.asset_collection.scenes),
             np.random.choice(config.asset_collection.wall_materials),
-            config.asset_collection.label_material,
             np.random.choice(config.asset_collection.world_textures),
             tuple(camera_translation),
             tuple(camera_rotation),

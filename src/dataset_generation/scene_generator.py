@@ -1,3 +1,5 @@
+import os
+
 import bpy
 
 from dataset_generation.models import Configuration
@@ -31,8 +33,8 @@ class SceneGenerator:
         wall = parameters.wall_set.wall
 
         # Set world and object materials
-        crack.data.materials.append(parameters.crack_material)
         wall.data.materials[0] = parameters.wall_material
+        wall.data.materials[1] = parameters.wall_material
         bpy.data.worlds['World'].node_tree.nodes['Environment Texture'].image = parameters.world_texture
 
         # Move camera to object
@@ -54,10 +56,10 @@ class SceneGenerator:
         self.__crack_renderer(
             crack,
             wall,
-            config.label_parameters,
-            parameters,
-            config.output_images_directory,
-            config.output_labels_directory
+            config.label_parameters.min_active_pixels,
+            config.output_directory,
+            os.path.join(config.output_images_directory, parameters.output_file_name + '.png'),
+            os.path.join(config.output_labels_directory, parameters.output_file_name + '.png'),
         )
 
     def add_crack_modifier(self, wall: bpy.types.Object):

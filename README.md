@@ -20,11 +20,15 @@ blender resources/scene.blend -b -P blender_start_render_script.py -- --cycles-d
 
 where the `<device>` is one of `[CPU, CUDA, OPTIX, HIP, ONEAPI, METAL]`, argument `-s` is used to set the desired dataset size and `-c` is the path to the configuration file that should be used. The optional `-r` and `-o` options serve to control the maximum number of render retries and output directory respectively.
 
+Please note that the framework overrides the compositing settings in order to render both the image and the label.
+
 ### `scene.blend` features
 
 The Blender source file `scene.blend` contains a couple of features which are handy to set up a semi-realistic scene quickly. Materials, a geometry nodes model for walls as well as some models used for testing.
 Note that the `wall` property in the config assumes a single object represent the geometry to be used for crack generation. When using the `Wall V3` geometry nodes modifier to create this geometry, make sure to apply the modifier as otherwise the framework won't work correctly.  
 Additionally, note that the materials use the brick texture from Blender, which is lined up to work with the current dimensions used for bricks (0.21 x 0.05 with a mortar size of 0.1). The default settings for the `Wall v3` geometry nodes modifier do line up correctly with the material, but changing the dimension settings in the nodes modifier will cause the material to not line up correctly anymore. This also happens when using a different width : height ratio for the base model.
+
+The scene also uses a door sourced from [BlenderKit](https://www.blenderkit.com/get-blenderkit/0d8c66e5-53df-4778-b070-ea40743e7ebe/), but this is already included in the `scene.blend` file and does not need to be imported again.
 
 ## Requirements
 
@@ -49,15 +53,13 @@ blender -b -P blender_install_dependencies.py
 
 to install the necessary dependencies into Blender. Note that some dependency version may differ between Blender and your own install due to the pre-installed modules in Blender's Python.
 
-To use the default configuration parameters, the same HDRIs need to be added. The installation of the HDRIs needs to be done manually. For this, the following HDRIs need to be downloaded and inserted into `scene.blend` and set in the config:
+To use the [default configuration parameters](src/resources/configuration.yaml), the same HDRIs need to be added. The installation of the HDRIs needs to be done manually. For this, the following HDRIs need to be downloaded and inserted into your `.blend` file:
 
 * https://polyhaven.com/a/pond_bridge_night
 * https://polyhaven.com/a/rotes_rathaus
 * https://polyhaven.com/a/studio_garden
 * https://polyhaven.com/a/urban_street_01
 * https://polyhaven.com/a/stuttgart_suburbs
-
-The scene also uses a door sourced from [BlenderKit](https://www.blenderkit.com/get-blenderkit/0d8c66e5-53df-4778-b070-ea40743e7ebe/), but this is already included in the `.blend` file and does not need to be imported again.
 
 ## Directory structure
 
@@ -69,7 +71,7 @@ The project is split up into directories as follows:
     ├── crack_generation: Crack generation algorithm.
     ├── dataset_generation: Blender dataset framework using crack generation.
     ├── resources: Assets of the project, including the Blender files and configuration needed to start the framework.
-    └── util: Classes related to neither the crack generation neither the dataset framework.
+    └── util: Classes related to neither the crack generation nor the dataset framework.
 ```
 
 ## Configuration
@@ -115,7 +117,6 @@ The framework uses a YAML file for setting most of the parameters. Please see [`
 | Name                  | Data type    | Description                                                                            |
 |-----------------------|--------------|----------------------------------------------------------------------------------------|
 | `safe_collections`    | list[str]    | Names of collections to not clear during scene clearing                                |
-| `label_material`      | str          | Name of the material to use for the crack label                                        |
 | `hdris`               | list[str]    | Names of the HDRIs to use                                                              |
 | `materials`           | list[str]    | Names of the materials to use for the wall                                             |
 | `scenes`              | list[object] | Set of objects that describe a scene                                                   |
@@ -129,9 +130,9 @@ The framework uses a YAML file for setting most of the parameters. Please see [`
 | `max`                 | float        | Maximum x/y/z camera rotation (in radians) or translation (in meters)                  |
 | `patches              | int          | Number of patches to generate. 1 does not use the patch approach                       |
 | `min_active_pixels`   | int          | Minimum number of pixels that need to be active in a label for it to not get rejected  |
-| `min_threshold`       | int          | Minimum grayscale value for iterative thresholding                                     |
-| `max_threshold`       | int          | Maximum grayscale value for iterative thresholding                                     |
-| `increments`          | int          | Step size for iterative thresholding                                                   |
+| `image_threshold`     | float        | Threshold to find the black pixels in the image. Recommended to leave unchanged.       |
+| `uv_threshold`        | float        | Threshold to find the black pixels in the UV maps. Recommended to leave unchanged.     |
+| `ao_threshold`        | float        | Threshold for the ambient occlusion map. Recommended to leave unchanged.               |
 
 ## Generated datasets
 
