@@ -66,5 +66,5 @@ class CrackRenderer:
             return generate_patches(parameters, img, label, file_name)
 
         shutil.move(rendered_image_path, os.path.join(parameters.image_output_directory, file_name + '.png'))
-        shutil.move(rendered_label_path, os.path.join(parameters.image_output_directory, file_name + '.png'))
+        shutil.move(rendered_label_path, os.path.join(parameters.label_output_directory, file_name + '.png'))
         return 1
