@@ -1,4 +1,4 @@
-from crack_generation.models.crack.parameters import CrackGenerationParameters, CrackDimensionParameters, \
+from crack_generation.model.parameters import CrackGenerationParameters, CrackDimensionParameters, \
     CrackPathParameters, CrackTrajectoryParameters
 
 DEFAULT_PARAMETERS = CrackGenerationParameters(

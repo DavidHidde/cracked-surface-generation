@@ -12,9 +12,9 @@ from matplotlib.figure import Figure
 
 from sys import platform as sys_pf
 
-from crack_generation.models.crack.parameters import CrackGenerationParameters, CrackDimensionParameters, \
+from crack_generation.model.parameters import CrackGenerationParameters, CrackDimensionParameters, \
     CrackPathParameters, CrackTrajectoryParameters
-from crack_generation.models.surface import Surface
+from crack_generation.model import Surface
 
 # Fix for MacOS
 if sys_pf == 'darwin':

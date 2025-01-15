@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from crack_generation.models.crack.parameters import CrackGenerationParameters
+from crack_generation.models.parameters import CrackGenerationParameters
 from .asset_collection import AssetCollection
 from .parameters.camera_parameters import CameraParameters
 from .parameters.label_generation_parameters import LabelGenerationParameters

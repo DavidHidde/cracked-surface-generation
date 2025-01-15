@@ -5,7 +5,7 @@ from scipy.ndimage import gaussian_filter1d
 
 from crack_generation.crack_trajectory_generator import CrackTrajectoryGenerator
 from crack_generation.models.crack import CrackPath
-from crack_generation.models.crack.parameters import CrackPathParameters, CrackGenerationParameters
+from crack_generation.models.parameters import CrackPathParameters, CrackGenerationParameters
 from crack_generation.models.surface import Surface
 from crack_generation.operations import CollisionChecker
 

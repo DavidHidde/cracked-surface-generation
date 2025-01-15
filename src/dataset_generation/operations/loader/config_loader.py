@@ -1,6 +1,6 @@
 import yaml
 
-from crack_generation.models.crack.parameters import CrackGenerationParameters, CrackDimensionParameters, \
+from crack_generation.models.parameters import CrackGenerationParameters, CrackDimensionParameters, \
     CrackPathParameters, CrackTrajectoryParameters
 from dataset_generation.models import Configuration
 from .camera_parameters_loader import CameraParametersLoader

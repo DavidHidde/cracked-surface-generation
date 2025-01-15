@@ -4,9 +4,9 @@ import bpy
 import numpy as np
 from mathutils import Vector
 
-from crack_generation.crack_generator import CrackGenerator
-from crack_generation.models.crack.parameters.crack_generation_parameters import CrackGenerationParameters
-from crack_generation.models.surface.surface import Surface
+from crack_generation.crack_generator_old import CrackGenerator
+from crack_generation.models.parameters.crack_generation_parameters import CrackGenerationParameters
+from crack_generation.models.surface import Surface
 from crack_generation.operations import ObjFileExporter
 from dataset_generation.operations.obj import ObjImporter
 
