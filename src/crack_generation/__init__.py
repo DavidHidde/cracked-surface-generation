@@ -1,1 +1,2 @@
 from .crack_generator import CrackGenerator
+from .surface_generation import create_surface_from_image

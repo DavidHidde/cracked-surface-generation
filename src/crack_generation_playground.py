@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
 
-from crack_generation import CrackGenerator
+from crack_generation import CrackGenerator, create_surface_from_image
 from crack_generation.model import Surface, Point
 from crack_generation.model.parameters import CrackGenerationParameters
 from crack_generation.path_functions import point_to_coords
@@ -49,21 +49,7 @@ def main():
     parser.add_argument('-f', '--file', type=str, required=True, help='Path to the surface height map to test on.')
     filename = parser.parse_args().file
     height_map = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
-
-    # Perform adaptive thresholding, get the distance transform and the angles
-    blurred = cv2.medianBlur(height_map, 15)
-    kernel_size = np.min(height_map.shape) // 20  # Consider a 5% window
-    kernel_size += 1 - kernel_size % 2
-    thresholded = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, kernel_size, 2)
-
-    inverse_thresholded = 255 - thresholded
-    distance_transform = cv2.distanceTransform(inverse_thresholded, cv2.DIST_L2, cv2.DIST_MASK_5)
-
-    grad_x = cv2.Sobel(distance_transform, cv2.CV_64F, 1, 0, ksize=3)
-    grad_y = cv2.Sobel(distance_transform, cv2.CV_64F, 0, 1, ksize=3)
-    angles = np.arctan2(grad_y, grad_x)
-
-    surface = Surface(height_map, distance_transform, angles, 650, 150, 50)
+    surface = create_surface_from_image(height_map, 650, 150)
 
     # Setup plot
     fig, ax = plt.subplots(figsize=(16, 5), dpi=100)

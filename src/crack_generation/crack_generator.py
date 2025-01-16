@@ -2,7 +2,8 @@ import numpy as np
 
 from crack_generation.model import Surface, Crack, Point
 from crack_generation.model.parameters import CrackGenerationParameters
-from crack_generation.path_functions import generate_pivot_trajectory, generate_path
+from crack_generation.path_functions import generate_pivot_trajectory, generate_path, remove_non_increasing_points, \
+    smooth_path_gaussian, smooth_path_moving_average
 
 
 class CrackGenerator:
@@ -23,7 +24,11 @@ class CrackGenerator:
             all_points += generate_path(all_points[-1], pivot_point, surface, self.parameters.path_parameters)
 
         # Post process the crack
-        # TODO
+        all_points = remove_non_increasing_points(all_points, self.parameters.path_parameters.distance_improvement_threshold)
+        if self.parameters.path_parameters.smoothing_type == 'gaussian':
+            smooth_path_gaussian(all_points, self.parameters.path_parameters.smoothing)
+        if self.parameters.path_parameters.smoothing_type == 'moving_average':
+            smooth_path_moving_average(all_points, self.parameters.path_parameters.smoothing)
 
         # Create height map for crack
         # TODO

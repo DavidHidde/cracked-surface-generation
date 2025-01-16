@@ -14,4 +14,3 @@ class Surface:
     # Average 'physical' dimensions in pixels. Useful for navigating the height map.
     brick_width: int
     brick_height: int
-    mortar_size: int
