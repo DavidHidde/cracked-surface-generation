@@ -23,7 +23,8 @@ def generate_pivot_trajectory(surface: Surface, parameters: CrackGenerationParam
             pivot_points[idx - 1],
             surface,
             parameters.trajectory_parameters,
-            pivot_direction
+            pivot_direction,
+            idx == 1
         )
         pivot_points.append(next_pivot_point)
 

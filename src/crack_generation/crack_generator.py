@@ -16,7 +16,6 @@ class CrackGenerator:
     def __call__(self, surface: Surface) -> Crack:
         """Generate a crack for the provided surface with the set parameters."""
         start_point, pivot_points = generate_pivot_trajectory(surface, self.parameters)
-        print(start_point, pivot_points)
         all_points = [start_point]
 
         # Generate a path from pivot point to pivot point

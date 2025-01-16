@@ -36,9 +36,9 @@ def update_plot(parameters: CrackGenerationParameters, surface: Surface, ax: Axe
     crack_generator = CrackGenerator(parameters)
     crack = crack_generator(surface)
     x, y = create_single_line(crack.path)
-    ax.plot(x, y, color='red')
+    ax.plot(x, y, color='red', zorder=1)
     pivot_points = np.array(crack.trajectory)
-    ax.scatter(pivot_points[:, 0], pivot_points[:, 1], color='red')
+    ax.scatter(pivot_points[:, 0], pivot_points[:, 1], color='red', edgecolors='black', zorder=10)
     ax.imshow(surface.height_map, cmap='gray')
 
 
@@ -48,17 +48,22 @@ def main():
     parser = ArgumentParser()
     parser.add_argument('-f', '--file', type=str, required=True, help='Path to the surface height map to test on.')
     filename = parser.parse_args().file
-
     height_map = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
 
-    # Construct structure tensor
-    print('Processing surface...')
-    inverse_height_map = 255 - height_map
-    grad_x = cv2.Sobel(inverse_height_map, cv2.CV_8U, 1, 0, ksize=3)
-    grad_y = cv2.Sobel(inverse_height_map, cv2.CV_8U, 0, 1, ksize=3)
+    # Perform adaptive thresholding, get the distance transform and the angles
+    blurred = cv2.medianBlur(height_map, 15)
+    kernel_size = np.min(height_map.shape) // 20  # Consider a 5% window
+    kernel_size += 1 - kernel_size % 2
+    thresholded = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, kernel_size, 2)
 
+    inverse_thresholded = 255 - thresholded
+    distance_transform = cv2.distanceTransform(inverse_thresholded, cv2.DIST_L2, cv2.DIST_MASK_5)
+
+    grad_x = cv2.Sobel(distance_transform, cv2.CV_64F, 1, 0, ksize=3)
+    grad_y = cv2.Sobel(distance_transform, cv2.CV_64F, 0, 1, ksize=3)
     angles = np.arctan2(grad_y, grad_x)
-    surface = Surface(height_map, angles, 650, 150, 50)
+
+    surface = Surface(height_map, distance_transform, angles, 650, 150, 50)
 
     # Setup plot
     fig, ax = plt.subplots(figsize=(16, 5), dpi=100)
@@ -66,9 +71,9 @@ def main():
 
     crack = crack_generator(surface)
     x, y = create_single_line(crack.path)
-    ax.plot(x, y, color='red')
+    ax.plot(x, y, color='red', zorder=1)
     pivot_points = np.array(crack.trajectory)
-    ax.scatter(pivot_points[:, 0], pivot_points[:, 1], color='red')
+    ax.scatter(pivot_points[:, 0], pivot_points[:, 1], color='red', edgecolors='black', zorder=10)
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.imshow(surface.height_map, cmap='gray')
