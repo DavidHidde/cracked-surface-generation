@@ -1,9 +1,10 @@
 from dataclasses import asdict
 from math import ceil
 from tkinter import Tk, Button, Scale, HORIZONTAL, Frame
-from typing import Callable
+from typing import Union
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 from matplotlib.axes import Axes
 from matplotlib.backends._backend_tk import NavigationToolbar2Tk
@@ -12,9 +13,11 @@ from matplotlib.figure import Figure
 
 from sys import platform as sys_pf
 
+from crack_generation import CrackGenerator
 from crack_generation.model.parameters import CrackGenerationParameters, CrackDimensionParameters, \
     CrackPathParameters, CrackTrajectoryParameters
-from crack_generation.model import Surface
+from crack_generation.model import Surface, Crack, Point
+from crack_generation.path_functions import point_to_coords, create_height_map_from_path
 
 # Fix for MacOS
 if sys_pf == 'darwin':
@@ -23,34 +26,54 @@ if sys_pf == 'darwin':
     matplotlib.use("TkAgg")
 
 
+def single_line_from_crack_path(path: list[Point]) -> np.array:
+    """Transform a list of points into a single looping line."""
+    coords = np.array([point_to_coords(point) for point in path], dtype=np.int32)
+    return np.concatenate([coords[:, 0, :], np.flip(coords[:, 1, :], axis=0)], axis=0)
+
+
 class PlaygroundInterface:
     """
-    Shared playground UI class.
+    Interactive UI for checking and adjusting crack generation parameters.
     """
+    WINDOW_TITLE = 'Crack parameter playground'
+    REGENERATE_BUTTON_TEXT = 'Regenerate crack'
+    UPDATE_DEPTH_BUTTON_TEXT = 'Update depth plot'
 
     # TkInter parameters
     window: Tk
 
-    # Plot parameters
-    plot_function: Callable[[CrackGenerationParameters, Surface, Axes], None]
-    fig: Figure
-    ax: Axes
-
     # State
-    parameters: CrackGenerationParameters
     surface: Surface
-    sliders: dict[str, dict[str, Scale]] = {}
+    parameters: CrackGenerationParameters
+
+    # UI
+    fig: Figure
+    path_ax: Axes
+    height_ax: Axes
+
+    sliders: dict[str, dict[str, Scale]]
+    crack: Union[Crack, None] = None
 
     def __init__(
-            self,
-            title: str,
-            plot_function: Callable[[CrackGenerationParameters, Surface, Axes], None],
-            figure: Figure,
-            ax: Axes
+        self,
+        surface: Surface,
+        parameters: CrackGenerationParameters
     ):
-        self.plot_function = plot_function
-        self.fig = figure
-        self.ax = ax
+        self.surface = surface
+        self.parameters = parameters
+
+        self.fig, [self.path_ax, self.height_ax] = plt.subplots(
+            1,
+            2,
+            sharex=True,
+            sharey=True,
+            figsize=(16, 5),
+            dpi=100
+        )
+        self.fig.suptitle(self.WINDOW_TITLE)
+        self.path_ax.set_xlabel('x')
+        self.path_ax.set_ylabel('y')
 
         self.sliders = {
             'dimension_parameters': {},
@@ -59,38 +82,24 @@ class PlaygroundInterface:
         }
 
         self.window = Tk()
-        self.window.title(title)
+        self.window.title(self.WINDOW_TITLE)
 
-        ax.set_title(title)
-        plt.title(title)
-
-    def start(self, parameters: CrackGenerationParameters, surface: Surface) -> None:
-        """
-        Start the UI with a certain set of parameters
-        """
-        self.parameters = parameters
-        self.surface = surface
-
-        # creating the Tkinter canvas containing the Matplotlib figure
         canvas = FigureCanvasTkAgg(self.fig, master=self.window)
         canvas.draw()
 
-        # placing the canvas on the Tkinter window
-        canvas.get_tk_widget().pack()
-
-        # creating the Matplotlib toolbar
         toolbar = NavigationToolbar2Tk(canvas, self.window)
         toolbar.update()
-
-        # placing the toolbar on the Tkinter window
         canvas.get_tk_widget().pack()
 
-        self.__add_widgets(parameters)
+        self.add_widgets(parameters)
 
+    def start(self) -> None:
+        """Start the UI."""
+        self.generate_and_plot_crack()
         self.window.mainloop()
 
-    def redraw(self):
-        # Update current parameters
+    def update_parameters_from_sliders(self) -> None:
+        """Read sliders into parameters."""
         parameters_dict = asdict(self.parameters)
         for child_dict_key, child_dict in self.sliders.items():
             for key, slider in child_dict.items():
@@ -101,14 +110,45 @@ class PlaygroundInterface:
             CrackTrajectoryParameters(**parameters_dict['trajectory_parameters'])
         )
 
-        # Call plot function with updated parameters
-        self.plot_function(self.parameters, self.surface, self.ax)
+    def generate_and_plot_crack(self, *args) -> None:
+        """Generate a crack and plot it. This resets both plots."""
+        self.update_parameters_from_sliders()
+        self.path_ax.clear()
+
+        crack_generator = CrackGenerator(self.parameters)
+        self.crack = crack_generator(self.surface)
+        coords = np.array([point_to_coords(point) for point in self.crack.path], dtype=np.int32)
+        flattened = np.concatenate([coords[:, 0, :], np.flip(coords[:, 1, :], axis=0)], axis=0)
+
+        self.path_ax.plot(flattened[:, 0], flattened[:, 1], color='red', zorder=1)
+        pivot_points = np.array(self.crack.trajectory)
+        self.path_ax.scatter(pivot_points[:, 0], pivot_points[:, 1], color='red', edgecolors='black', zorder=10)
+        self.path_ax.imshow(self.surface.height_map, cmap='gray')
+
+        self.plot_height_map(redraw=False)
 
         # Redraw
         self.fig.canvas.draw_idle()
         self.fig.canvas.flush_events()
 
-    def __add_widgets(self, parameters: CrackGenerationParameters) -> None:
+    def plot_height_map(self, *args, redraw=True) -> None:
+        """Plot the height map of the crack and optionally redraw."""
+        self.height_ax.clear()
+
+        if redraw:
+            height_map = create_height_map_from_path(
+                self.crack.path,
+                self.surface,
+                self.parameters.dimension_parameters
+            )
+            self.height_ax.imshow(height_map)
+            self.fig.canvas.draw_idle()
+            self.fig.canvas.flush_events()
+        else:
+            self.height_ax.imshow(self.crack.crack_height_map)
+
+    def add_widgets(self, parameters: CrackGenerationParameters) -> None:
+        """Add sliders and draw buttons."""
         slider_settings = {
             'dimension_parameters': {
                 'depth': {
@@ -143,7 +183,6 @@ class PlaygroundInterface:
                     'to': 100,
                     'resolution': 1
                 },
-
                 'step_size': {
                     'label': 'Step size',
                     'from_': 0.1,
@@ -184,7 +223,11 @@ class PlaygroundInterface:
 
         # Add sliders
         parameters_dict = asdict(self.parameters)
-        scales_per_column = ceil((len(slider_settings['dimension_parameters']) + len(slider_settings['path_parameters']) + len(slider_settings['trajectory_parameters'])) / 2)
+        scales_per_column = ceil(
+            (len(slider_settings['dimension_parameters']) + len(slider_settings['path_parameters']) + len(
+                slider_settings['trajectory_parameters']
+            )) / 2
+        )
         idx = 0
         for child_dict_key, child_dict in slider_settings.items():
             for attr_name, settings in child_dict.items():
@@ -192,20 +235,36 @@ class PlaygroundInterface:
                 scale.set(parameters_dict[child_dict_key].get(attr_name, 0))
                 scale.grid(
                     row=idx % scales_per_column,
-                    column=(0 if idx < scales_per_column else 2)
+                    column=(0 if idx < scales_per_column else 1),
+                    padx=20,
+                    pady=5
                 )
                 self.sliders[child_dict_key][attr_name] = scale
                 idx += 1
 
-        # Add redraw button
-        redraw_button = Button(
+        # Add buttons
+        crack_redraw_button = Button(
             master=frame,
-            command=self.redraw,
+            command=self.generate_and_plot_crack,
             height=2,
             width=10,
-            text='Redraw'
+            text=self.REGENERATE_BUTTON_TEXT
         )
-        redraw_button.grid(
+        crack_redraw_button.grid(
             row=scales_per_column,
-            column=1
+            column=0,
+            pady=40
+        )
+
+        height_redraw_button = Button(
+            master=frame,
+            command=self.plot_height_map,
+            height=2,
+            width=10,
+            text=self.UPDATE_DEPTH_BUTTON_TEXT
+        )
+        height_redraw_button.grid(
+            row=scales_per_column,
+            column=1,
+            pady=40
         )
