@@ -5,9 +5,9 @@ from pathlib import Path
 import bpy
 import time
 
+from dataset_generation.load_functions import load_config_from_yaml
 from dataset_generation.operations import SceneClearer, CrackRenderer, CompositorInitializer
 from dataset_generation.operations.generators import SceneParameterGenerator, CrackModelGenerator
-from dataset_generation.operations.loader import ConfigLoader
 from dataset_generation.scene_generator import SceneGenerator
 
 def run(dataset_size: int, max_retries: int, config_file_path: str, output_dir: str):
@@ -24,12 +24,11 @@ def run(dataset_size: int, max_retries: int, config_file_path: str, output_dir: 
     crack_generator = CrackModelGenerator()
     scene_generator = SceneGenerator()
     scene_parameters_generator = SceneParameterGenerator()
-    config_loader = ConfigLoader()
 
     # Create output directories
-    config = config_loader(config_file_path, output_dir)
-    Path(os.path.join(config.label_parameters.base_output_directory, 'images')).mkdir(exist_ok=True, parents=True)
-    Path(os.path.join(config.label_parameters.base_output_directory, 'labels')).mkdir(exist_ok=True, parents=True)
+    config = load_config_from_yaml(config_file_path, output_dir)
+    Path(os.path.join(config.label_parameters.image_output_directory)).mkdir(exist_ok=True, parents=True)
+    Path(os.path.join(config.label_parameters.label_output_directory)).mkdir(exist_ok=True, parents=True)
 
     # Set render settings
     bpy.context.scene.render.resolution_x = max(config.label_parameters.num_patches, 1) * 224

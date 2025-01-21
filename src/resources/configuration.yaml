@@ -1,25 +1,21 @@
-crack_generation_parameters: 
-    crack_dimension_parameters: 
-        width: 8.
+crack_generation:
+    dimensions:
+        width: 15.
         depth: 50.
-        depth_resolution: 5
-        sigma: 0.3
-        width_stds_offset: 2.
-    crack_path_parameters: 
-        step_size: 3.
+        sigma: 5.
+        width_stds_offset: 1.5
+    path:
+        step_size: 15.
         gradient_influence: 0.5
-        width_update_chance: 0.1
+        width_update_chance: 0.02
         breakthrough_chance: 0.1
-        min_distance: 5.
+        min_distance: 10.
         min_width: 2.
-        max_width_grow: 0.2
-        max_width_grow_factor: 0.2
-        start_pointiness: 0
-        end_pointiness: 2
-        smoothing_type: moving_average
-        smoothing: 4
+        max_width_grow: 2.
+        smoothing_type: gaussian
+        smoothing: 3
         distance_improvement_threshold: 0.1
-    crack_trajectory_parameters: 
+    trajectory:
         along_bottom_chance: 0.167
         along_diagonal_chance: 0.75
         along_side_chance: 0.083
@@ -29,41 +25,18 @@ crack_generation_parameters:
         row_search_space_percent: 0.2
         column_search_space_percent: 0.2
 
-scene_generation_parameters: 
+dataset_generation:
     assets:
-        safe_collections:
-            - Base assets
-            - Base assets 2
-            - Walls
-            - Walls 2
         hdris:
             - pond_bridge_night_4k.exr
             - rotes_rathaus_4k.exr
             - studio_garden_4k.exr
             - stuttgart_suburbs_4k.exr
             - urban_street_01_4k.exr
-        materials: 
-            - Gray brick - white mortar
-            - Red brick - white mortar
-            - Red brick - brown mortar
-            - Yellow brick - gray mortar
         scenes:
-            - wall: Door wall
-              other:
-                  - Pavement 2
-                  - Plastic door
-              wall_properties: 
-                  brick_width: 0.21
-                  brick_height: 0.05
-                  mortar_size: 0.01
-            - wall: Base wall
-              other:
-                  - Pavement
-              wall_properties: 
-                  brick_width: 0.21
-                  brick_height: 0.05
-                  mortar_size: 0.01
-    camera_parameters:
+            - wall: Test wall
+              other: []
+    camera:
         object: Camera
         rotation:
             x:
@@ -80,15 +53,15 @@ scene_generation_parameters:
                 min: -0.2
                 max: 0.2
             y:
-                min: -2.0
-                max: -1.0
+                min: -1.5
+                max: -0.5
             z:
                 min: -0.2
                 max: 0.2
-    label_generation:
-        patches: 3
+    label:
+        patches: 1
         thresholding:
-            min_active_pixels: 50
+            min_active_pixels: 30
             image_threshold: 0.25
             uv_threshold: 0.1
             ao_threshold: 0.25
