@@ -10,6 +10,5 @@ class CrackDimensionParameters:
     width: float
     depth: float
 
-    depth_resolution: int  # number of points to sample in the depth
     sigma: float  # standard deviation of the normal distribution
-    width_stds_offset: float  # umber of standar deviations away from the mean the width points are placed at
+    width_stds_offset: float  # number of standard deviations away from the mean the width points are placed at

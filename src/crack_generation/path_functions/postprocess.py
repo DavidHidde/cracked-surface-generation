@@ -78,9 +78,11 @@ def create_height_map_from_path(path: list[Point], surface: Surface, parameters:
     mask = distance_transform > 0
 
     # Use the distance transform to transform distances to normalized Gaussian depth values
+    distance_transform[mask] -= np.max(distance_transform) # Center values
     distance_transform[mask] *= parameters.sigma * parameters.width_stds_offset  # Set 1 to the desired sigma value
-    max_val = np.max(distance_transform)  # Center of the gaussian
-    distance_transform[mask] = norm.pdf(distance_transform[mask], scale=parameters.sigma ** 2, loc=max_val)
-    distance_transform[mask] = distance_transform[mask] / np.max(distance_transform[mask])
+
+    distance_transform[mask] = norm.pdf(distance_transform[mask], scale=parameters.sigma ** 2)
+    distance_transform[mask] = distance_transform[mask] / np.max(distance_transform[mask])  # Normalize
+    distance_transform[mask] = np.clip(distance_transform[mask], 1. / 255., 1.) # Bump min to at least a visible value
 
     return distance_transform

@@ -66,9 +66,9 @@ def determine_start_point(
     height, width = surface.height_map.shape
     min_height, max_height = 0, int(np.rint(height * (1 - parameters.row_search_space_percent)))
     if pivot_direction == PIVOT_DIRECTION_LEFT:
-        min_width, max_width = int(np.rint(width * (1 - parameters.row_search_space_percent))), width - 1
+        min_width, max_width = int(np.rint(width * (1 - parameters.column_search_space_percent))), width - 1
     if pivot_direction == PIVOT_DIRECTION_RIGHT:
-        min_width, max_width = 0, int(np.rint(width * parameters.row_search_space_percent))
+        min_width, max_width = 0, int(np.rint(width * parameters.column_search_space_percent))
 
     # Pair all edge points and sort them based on height value.
     side_edge_points = zip(

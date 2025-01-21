@@ -1,6 +1,7 @@
 from dataclasses import asdict
-from math import ceil
-from tkinter import Tk, Button, Scale, HORIZONTAL, Frame
+from tkinter import Tk, Button, Scale, HORIZONTAL, Frame, Canvas
+from tkinter.constants import VERTICAL, RIGHT, FALSE, Y, LEFT, BOTH, TRUE, NW
+from tkinter.ttk import Label, Scrollbar
 from typing import Union
 
 import matplotlib.pyplot as plt
@@ -26,10 +27,45 @@ if sys_pf == 'darwin':
     matplotlib.use("TkAgg")
 
 
-def single_line_from_crack_path(path: list[Point]) -> np.array:
-    """Transform a list of points into a single looping line."""
-    coords = np.array([point_to_coords(point) for point in path], dtype=np.int32)
-    return np.concatenate([coords[:, 0, :], np.flip(coords[:, 1, :], axis=0)], axis=0)
+class VerticalScrolledFrame(Frame):
+    """Vertical scollframe class from https://coderslegacy.com/python/make-scrollable-frame-in-tkinter/ß"""
+
+    def __init__(self, parent, *args, **kw):
+        Frame.__init__(self, parent, *args, **kw)
+
+        # Create a canvas object and a vertical scrollbar for scrolling it.
+        vscrollbar = Scrollbar(self, orient=VERTICAL)
+        vscrollbar.pack(fill=Y, side=RIGHT, expand=FALSE)
+        self.canvas = Canvas(
+            self, bd=0, highlightthickness=0,
+            width=200, height=300,
+            yscrollcommand=vscrollbar.set
+        )
+        self.canvas.pack(side=LEFT, fill=BOTH, expand=TRUE)
+        vscrollbar.config(command=self.canvas.yview)
+
+        # Reset the view
+        self.canvas.xview_moveto(0)
+        self.canvas.yview_moveto(0)
+
+        # Create a frame inside the canvas which will be scrolled with it.
+        self.interior = Frame(self.canvas)
+        self.interior.bind('<Configure>', self._configure_interior)
+        self.canvas.bind('<Configure>', self._configure_canvas)
+        self.interior_id = self.canvas.create_window(0, 0, window=self.interior, anchor=NW)
+
+    def _configure_interior(self, event):
+        # Update the scrollbars to match the size of the inner frame.
+        size = (self.interior.winfo_reqwidth(), self.interior.winfo_reqheight())
+        self.canvas.config(scrollregion=(0, 0, size[0], size[1]))
+        if self.interior.winfo_reqwidth() != self.canvas.winfo_width():
+            # Update the canvas's width to fit the inner frame.
+            self.canvas.config(width=self.interior.winfo_reqwidth())
+
+    def _configure_canvas(self, event):
+        if self.interior.winfo_reqwidth() != self.canvas.winfo_width():
+            # Update the inner frame's width to fill the canvas.
+            self.canvas.itemconfigure(self.interior_id, width=self.canvas.winfo_width())
 
 
 class PlaygroundInterface:
@@ -91,7 +127,7 @@ class PlaygroundInterface:
         toolbar.update()
         canvas.get_tk_widget().pack()
 
-        self.add_widgets(parameters)
+        self.add_widgets()
 
     def start(self) -> None:
         """Start the UI."""
@@ -136,64 +172,77 @@ class PlaygroundInterface:
         self.height_ax.clear()
 
         if redraw:
+            self.update_parameters_from_sliders()
             height_map = create_height_map_from_path(
                 self.crack.path,
                 self.surface,
                 self.parameters.dimension_parameters
             )
+            self.crack.crack_height_map = height_map
             self.height_ax.imshow(height_map)
             self.fig.canvas.draw_idle()
             self.fig.canvas.flush_events()
         else:
             self.height_ax.imshow(self.crack.crack_height_map)
 
-    def add_widgets(self, parameters: CrackGenerationParameters) -> None:
+    def add_widgets(self) -> None:
         """Add sliders and draw buttons."""
+        labels = {
+            'dimension_parameters': 'Dimension parameters',
+            'path_parameters': 'Path parameters',
+            'trajectory_parameters': 'Trajectory parameters'
+        }
         slider_settings = {
             'dimension_parameters': {
-                'depth': {
-                    'label': 'Depth',
-                    'from_': 1,
-                    'to': 15.,
-                    'resolution': 1
-                },
                 'width': {
                     'label': 'Initial width',
                     'from_': 1,
-                    'to': 15.,
+                    'to': 50.,
                     'resolution': 1.
                 },
-                'depth_resolution': {
-                    'label': 'Depth resolution',
-                    'from_': 0,
-                    'to': 10,
-                    'resolution': 1
+                'sigma': {
+                    'label': 'Depth Gaussian sigma',
+                    'from_': 0.,
+                    'to': 10.,
+                    'resolution': 0.1
+                },
+                'width_stds_offset': {
+                    'label': 'Depth Gaussian width sigma offset',
+                    'from_': 0.1,
+                    'to': 5.,
+                    'resolution': 0.1
                 },
             },
             'path_parameters': {
-                'start_pointiness': {
-                    'label': 'Start pointiness',
-                    'from_': 0,
-                    'to': 100,
-                    'resolution': 1
-                },
-                'end_pointiness': {
-                    'label': 'End pointiness',
-                    'from_': 0,
-                    'to': 100,
-                    'resolution': 1
-                },
                 'step_size': {
                     'label': 'Step size',
-                    'from_': 0.1,
-                    'to': 5.,
-                    'resolution': 1
+                    'from_': 1.,
+                    'to': 50.,
+                    'resolution': 0.5
                 },
                 'gradient_influence': {
                     'label': 'Gradient influence',
                     'from_': 0.,
                     'to': 1.,
                     'resolution': 0.01
+                },
+                'min_distance': {
+                    'label': 'Min L2 stopping distance',
+                    'from_': 0.,
+                    'to': 100.,
+                    'resolution': 1
+                },
+                'min_width': {
+                    'label': 'Min crack width before stopping',
+                    'from_': 0.,
+                    'to': 100.,
+                    'resolution': 1
+                },
+                'max_width_grow': {
+                    'label': 'Max width fluctuation per update',
+                    'from_': 0.,
+                    'to': 20.,
+                    'resolution': 0.1
                 },
                 'width_update_chance': {
                     'label': 'Width update chance',
@@ -210,61 +259,95 @@ class PlaygroundInterface:
                 'smoothing': {
                     'label': 'Smoothing',
                     'from_': 0,
-                    'to': 10,
+                    'to': 20,
                     'resolution': 1
                 },
+                'distance_improvement_threshold': {
+                    'label': 'Min distance improvement for keeping points',
+                    'from_': 0.,
+                    'to': 1.,
+                    'resolution': 0.05
+                },
             },
-            'trajectory_parameters': {}
+            'trajectory_parameters': {
+                'max_pivot_brick_widths': {
+                    'label': 'Max number of bricks in width pivot window',
+                    'from_': 1.,
+                    'to': 15.,
+                    'resolution': 1
+                },
+                'max_pivot_brick_heights': {
+                    'label': 'Max number of bricks in height pivot window',
+                    'from_': 1.,
+                    'to': 15.,
+                    'resolution': 1
+                },
+                'max_pivot_points': {
+                    'label': 'Max number of pivot points',
+                    'from_': 1.,
+                    'to': 15.,
+                    'resolution': 1
+                },
+                'row_search_space_percent': {
+                    'label': 'Percentage of height considered for starting point',
+                    'from_': 0.1,
+                    'to': 1.,
+                    'resolution': 0.1
+                },
+                'column_search_space_percent': {
+                    'label': 'Percentage of width considered for starting point',
+                    'from_': 0.1,
+                    'to': 1.,
+                    'resolution': 0.1
+                },
+            }
         }
 
         # Create subframe
-        frame = Frame(self.window)
+        frame = VerticalScrolledFrame(self.window)
         frame.pack()
 
         # Add sliders
         parameters_dict = asdict(self.parameters)
-        scales_per_column = ceil(
-            (len(slider_settings['dimension_parameters']) + len(slider_settings['path_parameters']) + len(
-                slider_settings['trajectory_parameters']
-            )) / 2
-        )
-        idx = 0
-        for child_dict_key, child_dict in slider_settings.items():
-            for attr_name, settings in child_dict.items():
-                scale = Scale(**settings, master=frame, orient=HORIZONTAL, length=250)
+        for column_idx, (child_dict_key, child_dict) in enumerate(slider_settings.items()):
+            label = Label(frame.interior, text=labels[child_dict_key])
+            label.grid(row=0, column=column_idx)
+            for row_idx, (attr_name, settings) in enumerate(child_dict.items()):
+                scale = Scale(**settings, master=frame.interior, orient=HORIZONTAL, length=250)
                 scale.set(parameters_dict[child_dict_key].get(attr_name, 0))
                 scale.grid(
-                    row=idx % scales_per_column,
-                    column=(0 if idx < scales_per_column else 1),
+                    row=row_idx + 1,
+                    column=column_idx,
                     padx=20,
                     pady=5
                 )
                 self.sliders[child_dict_key][attr_name] = scale
-                idx += 1
 
         # Add buttons
         crack_redraw_button = Button(
-            master=frame,
+            master=frame.interior,
             command=self.generate_and_plot_crack,
             height=2,
             width=10,
             text=self.REGENERATE_BUTTON_TEXT
         )
         crack_redraw_button.grid(
-            row=scales_per_column,
-            column=0,
-            pady=40
+            row=1,
+            column=3,
+            padx=40,
+            pady=10
         )
 
         height_redraw_button = Button(
-            master=frame,
+            master=frame.interior,
             command=self.plot_height_map,
             height=2,
             width=10,
             text=self.UPDATE_DEPTH_BUTTON_TEXT
         )
         height_redraw_button.grid(
-            row=scales_per_column,
-            column=1,
-            pady=40
+            row=2,
+            column=3,
+            padx=40,
+            pady=10
         )

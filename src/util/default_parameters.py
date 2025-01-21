@@ -5,21 +5,17 @@ DEFAULT_PARAMETERS = CrackGenerationParameters(
     CrackDimensionParameters(
         width=15.,
         depth=5.,
-        depth_resolution=5,
-        sigma=1.,
-        width_stds_offset=2.
+        sigma=5.,
+        width_stds_offset=1.5
     ),
     CrackPathParameters(
-        step_size=4.,
+        step_size=15.,
         gradient_influence=0.5,
         width_update_chance=0.02,
         breakthrough_chance=0.1,
         min_distance=10.,
         min_width=2.,
         max_width_grow=2,
-        max_width_grow_factor=0.2,
-        start_pointiness=0,
-        end_pointiness=0,
         smoothing_type='gaussian',
         smoothing=1,
         distance_improvement_threshold=0.1
