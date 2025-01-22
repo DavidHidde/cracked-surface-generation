@@ -34,7 +34,12 @@ def load_surface_texture(wall: bpy.types.Object, material: bpy.types.Material) -
     return (pixel_array[Y, X, 0] * 255).squeeze()
 
 
-def load_scene(scene_dict: dict) -> Scene:
+def load_scene(
+    scene_dict: dict,
+    displacement_image: bpy.types.Image,
+    displacement_mask: bpy.types.Image,
+    crack_depth: float
+) -> Scene:
     """Load a scene from a dict. This generates a surface given a wall model and modifies the material."""
     wall = bpy.data.objects[scene_dict['wall']]
     material = wall.active_material
@@ -43,7 +48,7 @@ def load_scene(scene_dict: dict) -> Scene:
         wall,
         material
     )  # Note: Loading the surface before changing the material is necessary
-    modify_material_for_cracking(material)
+    modify_material_for_cracking(material, displacement_image, displacement_mask, crack_depth)
 
     return Scene(
         wall=wall,
@@ -53,9 +58,14 @@ def load_scene(scene_dict: dict) -> Scene:
     )
 
 
-def load_asset_collection(asset_collection_data: dict) -> AssetCollection:
+def load_asset_collection(asset_collection_data: dict, crack_depth: float) -> AssetCollection:
     """Load the asset collection from a dict."""
+    crack_displacement_image = bpy.data.images.new('crack_displacement_image', 10, 10)
+    crack_displacement_mask = bpy.data.images.new('crack_displacement_mask', 10, 10)
+
     return AssetCollection(
-        scenes=[load_scene(scene_dict) for scene_dict in asset_collection_data["scenes"]],
-        world_textures=[bpy.data.images[hdri_name] for hdri_name in asset_collection_data['hdris']]
+        scenes=[load_scene(scene_dict, crack_displacement_image, crack_displacement_mask, crack_depth) for scene_dict in asset_collection_data["scenes"]],
+        world_textures=[bpy.data.images[hdri_name] for hdri_name in asset_collection_data['hdris']],
+        crack_displacement_texture=crack_displacement_image,
+        crack_displacement_mask=crack_displacement_mask
     )

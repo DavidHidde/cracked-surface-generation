@@ -6,6 +6,7 @@ import bpy
 import time
 
 from dataset_generation.load_functions import load_config_from_yaml
+from dataset_generation.node_injection_functions.compositor import create_compositor_flow
 from dataset_generation.operations import SceneClearer, CrackRenderer, CompositorInitializer
 from dataset_generation.operations.generators import SceneParameterGenerator, CrackModelGenerator
 from dataset_generation.scene_generator import SceneGenerator
@@ -31,9 +32,10 @@ def run(dataset_size: int, max_retries: int, config_file_path: str, output_dir: 
     Path(os.path.join(config.label_parameters.label_output_directory)).mkdir(exist_ok=True, parents=True)
 
     # Set render settings
-    bpy.context.scene.render.resolution_x = max(config.label_parameters.num_patches, 1) * 224
-    bpy.context.scene.render.resolution_y = max(config.label_parameters.num_patches, 1) * 224
-    CompositorInitializer()(config.label_parameters)
+    resolution_width, resolution_height = config.label_parameters.resolution
+    bpy.context.scene.render.resolution_x = max(config.label_parameters.num_patches, 1) * resolution_width
+    bpy.context.scene.render.resolution_y = max(config.label_parameters.num_patches, 1) * resolution_height
+    create_compositor_flow(config.label_parameters)
 
     """
     Main generation loop:

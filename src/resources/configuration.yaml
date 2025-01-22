@@ -59,9 +59,11 @@ dataset_generation:
                 min: -0.2
                 max: 0.2
     label:
+        resolution:
+            x: 224
+            y: 224
         patches: 1
-        thresholding:
-            min_active_pixels: 30
-            image_threshold: 0.25
-            uv_threshold: 0.1
-            ao_threshold: 0.25
+        min_active_pixels: 30
+        threshold:
+            crack: 0.005
+            ao: 0.433
