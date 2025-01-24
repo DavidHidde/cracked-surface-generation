@@ -59,6 +59,10 @@ def shrink_path_end(path: list[Point], min_width: float, max_width_grow: float) 
 
 def remove_non_increasing_points(path: list[Point], threshold: float) -> list[Point]:
     """Remove non-increasing points compared to the starting point based on the derivative."""
+    # Ignore very small paths
+    if len(path) < 5:
+        return path
+
     coords = np.array([point.center for point in path], dtype=np.int32)
     distances = np.linalg.norm(coords[:, :] - coords[0, :], axis=1)
     gradient_distances = np.gradient(distances)

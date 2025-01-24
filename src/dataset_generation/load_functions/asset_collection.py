@@ -31,7 +31,17 @@ def load_surface_texture(wall: bpy.types.Object, material: bpy.types.Material) -
     X, Y = np.meshgrid(np.arange(min_x, max_x + 1), np.arange(min_y, max_y + 1))
     X, Y = X % img_width, Y % img_height
 
-    return (pixel_array[Y, X, 0] * 255).squeeze()
+    return (pixel_array[Y, X, 0] * 255).squeeze().astype(np.uint8)
+
+
+def fix_object_normals(obj: bpy.types.Object) -> None:
+    """Fix normals of an object."""
+    obj.select_set(True)
+    bpy.ops.object.mode_set(mode='EDIT')
+    for face in obj.data.polygons:
+        face.select = True
+    bpy.ops.mesh.normals_make_consistent(inside=False)
+    bpy.ops.object.mode_set(mode='OBJECT')
 
 
 def load_scene(
@@ -42,8 +52,7 @@ def load_scene(
 ) -> Scene:
     """Load a scene from a dict. This generates a surface given a wall model and modifies the material."""
     wall = bpy.data.objects[scene_dict['wall']]
-    wall.select = True
-    bpy.ops.mesh.normals_make_consistent(inside=False)  # Fix normals if necessary
+    fix_object_normals(wall)
     material = wall.active_material
 
     surface_tex = load_surface_texture(

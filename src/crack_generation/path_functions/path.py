@@ -2,7 +2,7 @@ import numpy as np
 
 from crack_generation.model import Point, Surface
 from crack_generation.model.parameters import CrackPathParameters
-from .collision import within_surface, on_edge, in_object
+from .collision import within_surface, in_object
 
 
 def generate_path(
@@ -18,7 +18,7 @@ def generate_path(
     path_points = []
     current_point = initial_point
     end_x, end_y = end_position
-    surface_width, surface_height = surface.height_map.shape
+    surface_height, surface_width = surface.height_map.shape
     breaking_gradient = True  # Start at true to help progression
 
     # Keep going until the crack becomes to small, reaches the boundary or reaches the end point

@@ -79,8 +79,8 @@ def determine_start_point(
     all_points = list(side_edge_points) + list(top_edge_points)
     all_points.sort(key=lambda point: -surface.distance_transform[point[1], point[0]])
 
-    # Choose one of the 25% lowest points
-    center = all_points[np.random.randint(int(len(all_points) * 0.2))]
+    # Choose one of the 50% lowest points
+    center = all_points[np.random.randint(int(len(all_points) * 0.5))]
     angle = (0 if pivot_direction == PIVOT_DIRECTION_RIGHT else np.pi) if center[1] > 0 else np.pi / 2.
 
     return Point(angle, min(initial_width, surface.distance_transform[center[1], center[0]]), center)

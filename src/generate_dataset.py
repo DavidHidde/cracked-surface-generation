@@ -6,10 +6,9 @@ import bpy
 import time
 
 from crack_generation import CrackGenerator
-from dataset_generation import generate_render_iteration, prepare_scene
+from dataset_generation import generate_render_iteration, prepare_scene, render_crack
 from dataset_generation.load_functions import load_config_from_yaml
 from dataset_generation.node_injection_functions import create_compositor_flow
-from dataset_generation.operations import CrackRenderer
 
 
 def run(dataset_size: int, max_retries: int, config_file_path: str, output_dir: str):
@@ -20,9 +19,6 @@ def run(dataset_size: int, max_retries: int, config_file_path: str, output_dir: 
     start_time = time.time()
 
     print('-- Preloading Blender data... --')
-    # Setup of constant operators
-    crack_renderer = CrackRenderer()
-
     # Load config and create output directories
     config = load_config_from_yaml(config_file_path, output_dir)
     Path(os.path.join(config.label_parameters.image_output_directory)).mkdir(exist_ok=True, parents=True)
@@ -50,7 +46,7 @@ def run(dataset_size: int, max_retries: int, config_file_path: str, output_dir: 
             render_iteration = generate_render_iteration(config, crack_generator, idx)
             prepare_scene(config, render_iteration)
 
-            num_rendered = crack_renderer(config.label_parameters, file_name)
+            num_rendered = render_crack(config.label_parameters, render_iteration.index)
             if num_rendered == 0:
                 print('- Warning: Label was empty, retrying...  -')
                 retry_count += 1

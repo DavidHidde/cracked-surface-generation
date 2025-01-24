@@ -11,7 +11,7 @@ def load_config_from_yaml(yaml_file_path: str, output_directory: str) -> Configu
         data = yaml.safe_load(yaml_file)
 
     return Configuration(
-        asset_collection=load_asset_collection(data['assets'], data['crack_generation']['dimensions']['depth']),
+        asset_collection=load_asset_collection(data['dataset_generation']['assets'], data['crack_generation']['dimensions']['depth']),
         crack_parameters=load_crack_parameters(data['crack_generation']),
         camera_parameters=load_camera_parameters(data['dataset_generation']['camera']),
         label_parameters=load_label_parameters(data['dataset_generation']['label'], output_directory),

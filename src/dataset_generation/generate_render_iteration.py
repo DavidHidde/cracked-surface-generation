@@ -41,11 +41,15 @@ def generate_render_iteration(
 
     scene = np.random.choice(config.asset_collection.scenes)
 
+    crack = crack_generator(scene.surface)
+    while np.sum(crack.crack_height_map) < config.label_parameters.min_active_pixels:
+        crack = crack_generator(scene.surface)
+
     return RenderIteration(
         index=iteration,
         scene=scene,
         world_texture=np.random.choice(config.asset_collection.world_textures),
-        crack=crack_generator(scene.surface),
+        crack=crack,
         camera_translation=tuple(camera_translation),
         camera_rotation=tuple(camera_rotation)
     )
