@@ -19,7 +19,7 @@ def load_surface_texture(wall: bpy.types.Object, material: bpy.types.Material) -
     mesh = wall.data
     uv_layer = mesh.uv_layers.active.data
     max_y = -np.inf
-    for idx, face in enumerate(mesh.polygons):
+    for face in mesh.polygons:
         if face.normal.y > max_y:
             max_y = face.normal.y
             chosen_face = face
@@ -42,6 +42,8 @@ def load_scene(
 ) -> Scene:
     """Load a scene from a dict. This generates a surface given a wall model and modifies the material."""
     wall = bpy.data.objects[scene_dict['wall']]
+    wall.select = True
+    bpy.ops.mesh.normals_make_consistent(inside=False)  # Fix normals if necessary
     material = wall.active_material
 
     surface_tex = load_surface_texture(
@@ -64,7 +66,8 @@ def load_asset_collection(asset_collection_data: dict, crack_depth: float) -> As
     crack_displacement_mask = bpy.data.images.new('crack_displacement_mask', 10, 10)
 
     return AssetCollection(
-        scenes=[load_scene(scene_dict, crack_displacement_image, crack_displacement_mask, crack_depth) for scene_dict in asset_collection_data["scenes"]],
+        scenes=[load_scene(scene_dict, crack_displacement_image, crack_displacement_mask, crack_depth) for scene_dict in
+            asset_collection_data["scenes"]],
         world_textures=[bpy.data.images[hdri_name] for hdri_name in asset_collection_data['hdris']],
         crack_displacement_texture=crack_displacement_image,
         crack_displacement_mask=crack_displacement_mask

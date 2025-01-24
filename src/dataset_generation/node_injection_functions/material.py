@@ -2,6 +2,7 @@ import bpy
 import cv2
 import numpy as np
 
+
 def create_blurred_diff_texture(image: bpy.types.Image) -> bpy.types.Image:
     """Create a blurred version of the supplied image."""
     blurred_image = image.copy()
@@ -89,7 +90,11 @@ def modify_material_for_cracking(
     # Modify diffuse texture
     bsdf_node = tree.nodes['Principled BSDF']
     diff_tex_node = bsdf_node.inputs['Base Color'].links[0].from_node
-    tex_mix_node = create_diff_texture_mix_path(tree, create_blurred_diff_texture(diff_tex_node.image), crack_mask_image)
+    tex_mix_node = create_diff_texture_mix_path(
+        tree,
+        create_blurred_diff_texture(diff_tex_node.image),
+        crack_mask_image
+    )
 
     tree.links.new(diff_tex_node.outputs['Color'], tex_mix_node.inputs['A'])
     tree.links.new(tex_mix_node.outputs['Result'], bsdf_node.inputs['Base Color'])
@@ -99,8 +104,7 @@ def modify_material_for_cracking(
     displacement_tex_node = displacement_node.inputs['Height'].links[0].from_node
 
     displacement_mix_node = create_displacement_mix_path(tree, crack_displacement_image)
-    displacement_direction = np.sign(displacement_node.inputs['Scale'].default_value)
-    displacement_mix_node.inputs['Factor'].default_value = crack_depth * displacement_direction
+    displacement_mix_node.inputs['Factor'].default_value = crack_depth
 
     tree.links.new(displacement_tex_node.outputs['Color'], displacement_mix_node.inputs['A'])
     tree.links.new(displacement_mix_node.outputs['Result'], displacement_node.inputs['Height'])

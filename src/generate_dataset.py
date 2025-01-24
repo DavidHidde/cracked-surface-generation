@@ -5,11 +5,12 @@ from pathlib import Path
 import bpy
 import time
 
+from crack_generation import CrackGenerator
+from dataset_generation import generate_render_iteration, prepare_scene
 from dataset_generation.load_functions import load_config_from_yaml
-from dataset_generation.node_injection_functions.compositor import create_compositor_flow
-from dataset_generation.operations import SceneClearer, CrackRenderer, CompositorInitializer
-from dataset_generation.operations.generators import SceneParameterGenerator, CrackModelGenerator
-from dataset_generation.scene_generator import SceneGenerator
+from dataset_generation.node_injection_functions import create_compositor_flow
+from dataset_generation.operations import CrackRenderer
+
 
 def run(dataset_size: int, max_retries: int, config_file_path: str, output_dir: str):
     """
@@ -20,13 +21,9 @@ def run(dataset_size: int, max_retries: int, config_file_path: str, output_dir: 
 
     print('-- Preloading Blender data... --')
     # Setup of constant operators
-    scene_clearer = SceneClearer()
     crack_renderer = CrackRenderer()
-    crack_generator = CrackModelGenerator()
-    scene_generator = SceneGenerator()
-    scene_parameters_generator = SceneParameterGenerator()
 
-    # Create output directories
+    # Load config and create output directories
     config = load_config_from_yaml(config_file_path, output_dir)
     Path(os.path.join(config.label_parameters.image_output_directory)).mkdir(exist_ok=True, parents=True)
     Path(os.path.join(config.label_parameters.label_output_directory)).mkdir(exist_ok=True, parents=True)
@@ -39,28 +36,19 @@ def run(dataset_size: int, max_retries: int, config_file_path: str, output_dir: 
 
     """
     Main generation loop:
-        - Clear the scene.
-        - Generate a new crack.
-        - Generate new scene parameters.
-        - Generate a new scene.
+        - Generate a new render iteration
+        - Generate a new crack on the surface of the iteration.
+        - Apply iteration settings.
         - Render and divide into patches if needed.
     """
     print('-- Starting rendering pipeline... --')
     idx = 0
     retry_count = 0
-    crack_obj_path = os.path.join(config.label_parameters.base_output_directory, 'crack.obj')
+    crack_generator = CrackGenerator(config.crack_parameters)
     while idx < dataset_size and retry_count <= max_retries:
         try:
-            file_name = f'crack-{idx}'
-
-            scene_clearer(config)
-            scene_parameters = scene_parameters_generator(config)
-            crack = crack_generator(
-                config.crack_parameters,
-                scene_parameters.wall_set.surface,
-                crack_obj_path
-            )
-            scene_generator(crack, config.camera_parameters.camera_obj, scene_parameters)
+            render_iteration = generate_render_iteration(config, crack_generator, idx)
+            prepare_scene(config, render_iteration)
 
             num_rendered = crack_renderer(config.label_parameters, file_name)
             if num_rendered == 0:
