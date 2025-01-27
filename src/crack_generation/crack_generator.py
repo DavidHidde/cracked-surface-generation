@@ -1,5 +1,3 @@
-import numpy as np
-
 from crack_generation.model import Surface, Crack
 from crack_generation.model.parameters import CrackGenerationParameters
 from crack_generation.path_functions import generate_pivot_trajectory, generate_path, remove_non_increasing_points, \

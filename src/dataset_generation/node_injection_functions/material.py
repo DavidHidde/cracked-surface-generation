@@ -2,6 +2,9 @@ import bpy
 import cv2
 import numpy as np
 
+UV_NODE_NAME = 'Crack UV Map Node'
+CRACK_UV_MAP_NAME = 'crack_UV_map'
+
 
 def create_blurred_diff_texture(image: bpy.types.Image) -> bpy.types.Image:
     """Create a blurred version of the supplied image."""
@@ -27,10 +30,11 @@ def create_diff_texture_mix_path(
 ) -> bpy.types.ShaderNodeMix:
     """Create the path which mixes the crack parts of the material with a blurred version."""
     mapping_node = tree.nodes['Mapping']
+    uv_mapping_node = tree.nodes[UV_NODE_NAME]
 
     mask_node = tree.nodes.new('ShaderNodeTexImage')
     mask_node.image = mask
-    tree.links.new(mapping_node.outputs['Vector'], mask_node.inputs['Vector'])  # TODO: replace with empty UV link
+    tree.links.new(uv_mapping_node.outputs['UV'], mask_node.inputs['Vector'])
 
     blurring_node = tree.nodes.new('ShaderNodeTexImage')
     blurring_node.image = blurred
@@ -49,16 +53,16 @@ def create_displacement_mix_path(
     crack_displacement_tex: bpy.types.Image
 ) -> bpy.types.ShaderNodeMix:
     """Create the path which subtracts the crack from the displacement map"""
-    mapping_node = tree.nodes['Mapping']  # TODO: replace with empty UV mapping
+    mapping_node = tree.nodes[UV_NODE_NAME]
 
     crack_node = tree.nodes.new('ShaderNodeTexImage')
     crack_node.image = crack_displacement_tex
     crack_node.interpolation = 'Closest'
-    tree.links.new(mapping_node.outputs['Vector'], crack_node.inputs['Vector'])  # TODO: replace with empty UV link
+    tree.links.new(mapping_node.outputs['UV'], crack_node.inputs['Vector'])
 
     aov_node = tree.nodes.new('ShaderNodeOutputAOV')
     aov_node.aov_name = 'Crack'
-    tree.links.new(crack_node.outputs['Color'], aov_node.inputs['Color'])  # TODO: replace with empty UV link
+    tree.links.new(crack_node.outputs['Color'], aov_node.inputs['Color'])
 
     mix_node = tree.nodes.new('ShaderNodeMix')
     mix_node.data_type = 'RGBA'
@@ -86,6 +90,11 @@ def modify_material_for_cracking(
     2. A subtract node for the displacement texture, which subtracts the crack height map from the regular displacement texture.
     """
     tree = material.node_tree
+
+    # Create a UV map node which we will link to other texture nodes as input
+    uv_map_node = tree.nodes.new('ShaderNodeUVMap')
+    uv_map_node.name = UV_NODE_NAME
+    uv_map_node.uv_map = CRACK_UV_MAP_NAME
 
     # Modify diffuse texture
     bsdf_node = tree.nodes['Principled BSDF']

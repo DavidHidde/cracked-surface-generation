@@ -8,8 +8,8 @@ from dataset_generation.model import RenderIteration, Configuration, AssetCollec
 
 def align_camera(camera: bpy.types.Camera, render_iteration: RenderIteration) -> None:
     """Align a camera to a crack and move it using a rotation and translation factor."""
-    # Move the camera to the crack and point to it
-    crack_height_map = np.flip(render_iteration.crack.crack_height_map, axis=0)
+    # Move the camera to the crack and point to it. Take into account that image origin is top-left and X is inverse along Y+
+    crack_height_map = np.flip(np.flip(render_iteration.crack.crack_height_map, axis=0), axis=1)
     center_factor = np.average((crack_height_map > 0).nonzero(), axis=1) / np.array(crack_height_map.shape)
     center_factor = mathutils.Vector(
         [center_factor[1], np.average(center_factor), center_factor[0]]

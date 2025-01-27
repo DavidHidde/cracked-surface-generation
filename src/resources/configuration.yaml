@@ -1,7 +1,7 @@
 crack_generation:
     dimensions:
         width: 15.
-        depth: 20.
+        depth: 5.
         sigma: 7.
         width_stds_offset: 1.5
     path:
@@ -13,7 +13,7 @@ crack_generation:
         min_width: 2.
         max_width_grow: 2.
         smoothing_type: moving_average
-        smoothing: 3
+        smoothing: 2
         distance_improvement_threshold: 0.1
     trajectory:
         along_bottom_chance: 0.167
@@ -34,7 +34,7 @@ dataset_generation:
             - stuttgart_suburbs_4k.exr
             - urban_street_01_4k.exr
         scenes:
-            - wall: Test plane
+            - wall: Test wall
               other: []
     camera:
         object: Camera
@@ -53,8 +53,8 @@ dataset_generation:
                 min: -0.1
                 max: 0.1
             y:
-                min: -2
-                max: -1
+                min: 1
+                max: 4
             z:
                 min: -0.1
                 max: 0.1

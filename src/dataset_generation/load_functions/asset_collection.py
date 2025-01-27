@@ -5,7 +5,38 @@ from crack_generation import create_surface_from_image
 from dataset_generation.model import AssetCollection
 
 from dataset_generation.model.scene import Scene
-from dataset_generation.node_injection_functions import modify_material_for_cracking
+from dataset_generation.node_injection_functions import modify_material_for_cracking, CRACK_UV_MAP_NAME
+
+
+def create_crack_uv_map(obj: bpy.types.Object) -> None:
+    """Create a UV Map which will be used to fit the crack on the wall. We need this to avoid irregular uv maps."""
+    mesh = obj.data
+    uv_layer = mesh.uv_layers.new(name=CRACK_UV_MAP_NAME)
+
+    # Gather faces and find UVs using the most Y-facing component (object space).
+    faces = set()
+    max_y = -np.inf
+    for face in mesh.polygons:
+        if face.normal.y > max_y:
+            max_y = face.normal.y
+            chosen_face = face
+        faces.add(face)
+    faces.discard(chosen_face)
+
+    # Normalize UV range to fit the new texture
+    uvs = np.array([uv_layer.data[loop_idx].uv for loop_idx in chosen_face.loop_indices])
+    max_uv, min_uv = np.max(uvs, axis=0), np.min(uvs, axis=0)
+    uv_range = max_uv - min_uv
+
+    for loop_idx in chosen_face.loop_indices:
+        uvs = uv_layer.data[loop_idx].uv
+        uvs.x = (uvs.x - min_uv[0]) / uv_range[0]
+        uvs.y = (uvs.y - min_uv[1]) / uv_range[1]
+
+    # Set all other UVs to (0,0)
+    for face in faces:
+        for loop_idx in face.loop_indices:
+            uv_layer.data[loop_idx].uv = (0, 0)
 
 
 def load_surface_texture(wall: bpy.types.Object, material: bpy.types.Material) -> np.array:
@@ -13,7 +44,6 @@ def load_surface_texture(wall: bpy.types.Object, material: bpy.types.Material) -
     image_obj = material.node_tree.nodes['Displacement'].inputs['Height'].links[0].from_node.image
     img_width, img_height = image_obj.size
     pixel_array = np.array(image_obj.pixels).reshape(img_height, img_width, image_obj.channels)
-    pixel_array = np.flip(pixel_array, axis=0)  # (0,0) is bottom left in Blender
 
     # Find UVs using the most Y-facing component (object space).
     mesh = wall.data
@@ -31,7 +61,7 @@ def load_surface_texture(wall: bpy.types.Object, material: bpy.types.Material) -
     X, Y = np.meshgrid(np.arange(min_x, max_x + 1), np.arange(min_y, max_y + 1))
     X, Y = X % img_width, Y % img_height
 
-    return (pixel_array[Y, X, 0] * 255).squeeze().astype(np.uint8)
+    return np.flip((pixel_array[Y, X, 0] * 255).squeeze().astype(np.uint8), axis=0)  # (0,0) is bottom left in Blender
 
 
 def fix_object_normals(obj: bpy.types.Object) -> None:
@@ -55,10 +85,12 @@ def load_scene(
     fix_object_normals(wall)
     material = wall.active_material
 
+    # Order is important here! First load the texture, then create a new UV map, then modify the material
     surface_tex = load_surface_texture(
         wall,
         material
-    )  # Note: Loading the surface before changing the material is necessary
+    )
+    create_crack_uv_map(wall)
     modify_material_for_cracking(material, displacement_image, displacement_mask, crack_depth)
 
     return Scene(
