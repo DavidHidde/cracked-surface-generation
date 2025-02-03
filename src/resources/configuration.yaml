@@ -54,7 +54,7 @@ dataset_generation:
                 max: 0.1
             y:
                 min: 1
-                max: 4
+                max: 3
             z:
                 min: -0.1
                 max: 0.1
@@ -66,4 +66,4 @@ dataset_generation:
         min_active_pixels: 200
         threshold:
             crack: 0.005
-            ao: 0.43
+            ao: 0.55

@@ -1,4 +1,5 @@
 import bpy
+import cv2
 import mathutils
 import numpy as np
 
@@ -63,6 +64,7 @@ def apply_crack_texture(asset_collection: AssetCollection, crack: Crack) -> None
     mask = mask_arr > 0
     mask_arr[mask] = 1.
     mask_arr[~mask] = 0.
+    mask_arr = cv2.dilate(mask_arr, np.ones((5, 5), dtype=np.uint8), iterations=1)
     mask_arr = np.tile(np.expand_dims(mask_arr, axis=-1), [1, 1, 4])
     mask_arr[:, :, 3] = 1.
     asset_collection.crack_displacement_mask.scale(width, height)

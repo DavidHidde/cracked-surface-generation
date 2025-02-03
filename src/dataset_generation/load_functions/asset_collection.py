@@ -91,7 +91,7 @@ def load_scene(
         material
     )
     create_crack_uv_map(wall)
-    modify_material_for_cracking(material, displacement_image, displacement_mask, crack_depth)
+    modify_material_for_cracking(material, displacement_mask, displacement_image, crack_depth)
 
     return Scene(
         wall=wall,

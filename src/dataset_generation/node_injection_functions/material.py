@@ -36,6 +36,10 @@ def create_diff_texture_mix_path(
     mask_node.image = mask
     tree.links.new(uv_mapping_node.outputs['UV'], mask_node.inputs['Vector'])
 
+    aov_node = tree.nodes.new('ShaderNodeOutputAOV')
+    aov_node.aov_name = 'Crack'
+    tree.links.new(mask_node.outputs['Color'], aov_node.inputs['Color'])
+
     blurring_node = tree.nodes.new('ShaderNodeTexImage')
     blurring_node.image = blurred
     tree.links.new(mapping_node.outputs['Vector'], blurring_node.inputs['Vector'])
@@ -59,10 +63,6 @@ def create_displacement_mix_path(
     crack_node.image = crack_displacement_tex
     crack_node.interpolation = 'Closest'
     tree.links.new(mapping_node.outputs['UV'], crack_node.inputs['Vector'])
-
-    aov_node = tree.nodes.new('ShaderNodeOutputAOV')
-    aov_node.aov_name = 'Crack'
-    tree.links.new(crack_node.outputs['Color'], aov_node.inputs['Color'])
 
     mix_node = tree.nodes.new('ShaderNodeMix')
     mix_node.data_type = 'RGBA'

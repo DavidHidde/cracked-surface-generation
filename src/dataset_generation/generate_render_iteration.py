@@ -8,7 +8,7 @@ from crack_generation.model import Surface, Crack
 from dataset_generation.model import Configuration
 from dataset_generation.model import RenderIteration
 
-TIMEOUT_TIME = 60
+TIMEOUT_TIME = 10
 
 
 # Source: https://imzye.com/Python/python-func-timeout/
