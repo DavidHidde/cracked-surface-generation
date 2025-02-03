@@ -261,3 +261,5 @@ cython_debug/
 # Generated models
 *.obj
 *.blend1
+
+cache/

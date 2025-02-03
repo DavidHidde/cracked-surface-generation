@@ -1,91 +1,65 @@
-import pickle
+import os
 import traceback
+from pathlib import Path
 
 import bpy
 import time
 
-from dataset_generation.empty_label_error import EmptyLabelError
-from dataset_generation.operations import SceneClearer
-from dataset_generation.operations.generators import SceneParameterGenerator, CrackModelGenerator, PatchGenerator
-from dataset_generation.operations.loader import ConfigLoader
-from dataset_generation.scene_generator import SceneGenerator
-
-DUMP_SURFACE = False
-MAX_RETRIES = 5
+from crack_generation import CrackGenerator
+from dataset_generation import generate_render_iteration, prepare_scene, render_crack
+from dataset_generation.load_functions import load_config_from_yaml
+from dataset_generation.node_injection_functions import create_compositor_flow
 
 
-def main(dataset_size: int = 1, config_file_path: str = 'configuration.yaml'):
+def run(dataset_size: int, max_retries: int, config_file_path: str, output_dir: str):
     """
-    Main entrypoint
+    Main entrypoint. Starts the dataset generation using a specific config, dataset size and maximum number of retries.
     """
 
-    print('-- Starting rendering pipeline... --')
     start_time = time.time()
 
-    # Setup of constants
-    scene_clearer = SceneClearer()
-    patch_generator = PatchGenerator()
-    crack_generator = CrackModelGenerator()
-    scene_generator = SceneGenerator()
-    scene_parameters_generator = SceneParameterGenerator()
-    config_loader = ConfigLoader()
+    print('-- Preloading Blender data... --')
+    # Load config and create output directories
+    config = load_config_from_yaml(config_file_path, output_dir)
+    Path(os.path.join(config.label_parameters.image_output_directory)).mkdir(exist_ok=True, parents=True)
+    Path(os.path.join(config.label_parameters.label_output_directory)).mkdir(exist_ok=True, parents=True)
 
-    config = config_loader(config_file_path)
-
-    if DUMP_SURFACE:
-        with open('surface.dump', 'wb') as surface_file:
-            pickle.dump(config.asset_collection.scenes[1].surface, surface_file)
-
-    bpy.context.scene.render.resolution_x = max(config.label_parameters.num_patches, 1) * 224
-    bpy.context.scene.render.resolution_y = max(config.label_parameters.num_patches, 1) * 224
+    # Set render settings
+    resolution_width, resolution_height = config.label_parameters.resolution
+    bpy.context.scene.render.resolution_x = max(config.label_parameters.num_patches, 1) * resolution_width
+    bpy.context.scene.render.resolution_y = max(config.label_parameters.num_patches, 1) * resolution_height
+    create_compositor_flow(config.label_parameters)
 
     """
     Main generation loop:
-        - Clear the scene.
-        - Generate a new crack.
-        - Generate new scene parameters.
-        - Generate a new scene and render.
-        - Divide into patches if needed.
+        - Generate a new render iteration
+        - Generate a new crack on the surface of the iteration.
+        - Apply iteration settings.
+        - Render and divide into patches if needed.
     """
+    print('-- Starting rendering pipeline... --')
     idx = 0
     retry_count = 0
-    while idx < dataset_size and retry_count < MAX_RETRIES + 1:
+    crack_generator = CrackGenerator(config.crack_parameters)
+    while idx < dataset_size and retry_count <= max_retries:
         try:
-            file_name = f'crack-{idx}'
-            scene_clearer(config)
-            scene_parameters = scene_parameters_generator(file_name, config)
-            crack = crack_generator(
-                config.crack_parameters,
-                scene_parameters.wall_set.surface,
-                file_name + '.obj'
-            )
-            scene_generator(crack, config, scene_parameters)
+            render_iteration = generate_render_iteration(config, crack_generator, idx)
+            prepare_scene(config, render_iteration)
 
-            if config.label_parameters.num_patches > 1:
-                idx += patch_generator(file_name, config.label_parameters)
+            num_rendered = render_crack(config.label_parameters, render_iteration.index)
+            if num_rendered == 0:
+                print('- Warning: Label was empty, retrying...  -')
+                retry_count += 1
             else:
-                idx += 1
-
-            retry_count = 0
-        except EmptyLabelError:
-            print('- Warning: Label was empty, retrying...  -')
-            retry_count += 1
+                idx += num_rendered
+                retry_count = 0
         except Exception as e:
             print(f'- Error: {e} -')
             print(traceback.format_exc())
             print('- Warning: Something went wrong, retrying... -')
             retry_count += 1
 
-    if retry_count >= MAX_RETRIES + 1:
+    if retry_count > max_retries:
         print('- Rendering aborted, out of retries -')
 
     print(f'-- Rendering done after {round((time.time() - start_time) / 60, 2)} minutes --')
-
-
-# Main entrypoint
-if __name__ == '__main__':
-    try:
-        main()
-    except Exception as error:
-        print('Something caused the script to crash')
-        print(error)
