@@ -3,7 +3,6 @@ import cv2
 import numpy as np
 
 UV_NODE_NAME = 'Crack UV Map Node'
-CRACK_UV_MAP_NAME = 'crack_UV_map'
 
 
 def create_blurred_diff_texture(image: bpy.types.Image) -> bpy.types.Image:
@@ -61,7 +60,7 @@ def create_displacement_mix_path(
 
     crack_node = tree.nodes.new('ShaderNodeTexImage')
     crack_node.image = crack_displacement_tex
-    crack_node.interpolation = 'Closest'
+    crack_node.interpolation = 'Smart'
     tree.links.new(mapping_node.outputs['UV'], crack_node.inputs['Vector'])
 
     mix_node = tree.nodes.new('ShaderNodeMix')
@@ -94,7 +93,6 @@ def modify_material_for_cracking(
     # Create a UV map node which we will link to other texture nodes as input
     uv_map_node = tree.nodes.new('ShaderNodeUVMap')
     uv_map_node.name = UV_NODE_NAME
-    uv_map_node.uv_map = CRACK_UV_MAP_NAME
 
     # Modify diffuse texture
     bsdf_node = tree.nodes['Principled BSDF']

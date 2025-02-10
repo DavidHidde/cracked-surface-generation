@@ -2,7 +2,7 @@ import bpy
 
 from dataclasses import dataclass
 
-from crack_generation.model import Crack
+from crack_generation.model import Crack, Surface
 from .scene import Scene
 
 
@@ -13,6 +13,9 @@ class RenderIteration:
     index: int
 
     scene: Scene
+    surface: Surface
+    face: bpy.types.MeshPolygon
+    uv_map: bpy.types.MeshUVLoopLayer
     world_texture: bpy.types.Image
     crack: Crack
 

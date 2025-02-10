@@ -20,8 +20,21 @@ blender resources/scene.blend -b -P blender_start_render_script.py -- --cycles-d
 
 where the `<device>` is one of `[CPU, CUDA, OPTIX, HIP, ONEAPI, METAL]`, argument `-s` is used to set the desired dataset size and `-c` is the path to the configuration file that should be used. The optional `-r` and `-o` options serve to control the maximum number of render retries and output directory respectively.
 
-**!! IMPORTANT !!**  
-The workflow this framework uses modifies both material and compositing settings. For consistency, the material of a surface should be initialized using the standard node wrangler workflow (`Ctrl + Shift + T` while selecting the BSDF) and the existing compositor nodes are removed and overriden with a new flow.
+### Workflow
+
+This framework is build around a 3D modeling workflow which allows as much freedom as possible if it comes to the modeling itself. The general flow can be summarized as follows:
+
+1. Install any dependencies if necessary.
+2. Create a Blender scene or use the premade `scene.blend` file.
+3. Model the desired environment.
+4. Mark faces of walls which should be used for the crack generation algorithm as Freestyle faces.
+   1. *Note: the faces are assumed to be rectangular, any gaps are not taken into account.*
+5. Indicate all relevant objects and HDRIs in a `configuration.yaml` file.
+6. Call the framework as indicated above.
+   1. *Note: the existing compositor flow will be completely replaced by the post-processing flow of the framework*.
+   2. *Note: ensure the material of the selected walls is set up using the standard node wrangler workflow (`Ctrl + Shift + T` while selecting the BSDF)*.
+
+The workflow depends on *displacement maps* of surfaces. Therefor, materials of walls should have displacement enabled and should also use a displacement map. Without this, the framework does not function.
 
 ## Requirements
 
