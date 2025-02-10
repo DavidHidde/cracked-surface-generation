@@ -1,5 +1,4 @@
 import os
-import shutil
 
 import bpy
 import cv2
@@ -40,7 +39,8 @@ def render_crack(parameters: LabelParameters, iteration_index: int) -> int:
     rendered_label_path = os.path.join(parameters.base_output_directory, f'label-{bpy.context.scene.frame_current}.png')
 
     # Check if the label is 'empty'
-    label = cv2.imread(rendered_label_path)
+    img = cv2.imread(rendered_image_path)
+    label = cv2.imread(rendered_label_path)[:, :, 0]
     if np.sum(label) < parameters.min_active_pixels:
         return 0
 
@@ -50,6 +50,6 @@ def render_crack(parameters: LabelParameters, iteration_index: int) -> int:
         return generate_patches(parameters, iteration_index, img, label)
 
     file_name = f'crack-{iteration_index}.png'
-    shutil.move(rendered_image_path, os.path.join(parameters.image_output_directory, file_name))
-    shutil.move(rendered_label_path, os.path.join(parameters.label_output_directory, file_name))
+    cv2.imwrite(os.path.join(parameters.image_output_directory, file_name), img)
+    cv2.imwrite(os.path.join(parameters.label_output_directory, file_name), label)
     return 1

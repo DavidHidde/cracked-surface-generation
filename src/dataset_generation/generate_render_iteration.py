@@ -1,5 +1,6 @@
 import functools
 import signal
+import random
 
 import numpy as np
 
@@ -75,13 +76,17 @@ def generate_render_iteration(
     if camera_rotation[2] < 0 and camera_translation[0] < 0:
         camera_rotation[2] *= -1
 
-    scene = np.random.choice(config.asset_collection.scenes)
+    scene = random.choice(config.asset_collection.scenes)
+    face, uv_map, surface = random.choice(scene.surfaces)
 
     return RenderIteration(
         index=iteration,
         scene=scene,
-        world_texture=np.random.choice(config.asset_collection.world_textures),
-        crack=generate_crack(crack_generator, scene.surface, config.label_parameters.min_active_pixels),
+        surface=surface,
+        face=face,
+        uv_map=uv_map,
+        world_texture=random.choice(config.asset_collection.world_textures),
+        crack=generate_crack(crack_generator, surface, config.label_parameters.min_active_pixels),
         camera_translation=tuple(camera_translation),
         camera_rotation=tuple(camera_rotation)
     )
