@@ -1,8 +1,7 @@
-import functools
-import signal
 import random
 
 import numpy as np
+from func_timeout import func_timeout, FunctionTimedOut
 
 from crack_generation import CrackGenerator
 from crack_generation.model import Surface, Crack
@@ -12,32 +11,10 @@ from dataset_generation.model import RenderIteration
 TIMEOUT_TIME = 10
 
 
-# Source: https://imzye.com/Python/python-func-timeout/
-def timeout(seconds):
-    def decorator(func):
-        def _handle_timeout(signum, frame):
-            raise TimeoutError(f'Function {func.__name__} timed out')
-
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            signal.signal(signal.SIGALRM, _handle_timeout)
-            signal.alarm(seconds)
-            try:
-                result = func(*args, **kwargs)
-            finally:
-                signal.alarm(0)
-            return result
-
-        return wrapper
-
-    return decorator
-
-
-@timeout(TIMEOUT_TIME)
 def generate_crack(crack_generator: CrackGenerator, surface: Surface, min_pixels: int) -> Crack:
-    """Generate a crack for the surface given a minimum amount of active pixels."""
+    """Generate a crack for the surface given a minimum number of active pixels."""
     crack = crack_generator(surface)
-    while np.sum(crack.crack_height_map) < min_pixels:
+    while np.sum(crack.crack_height_map > 0) < min_pixels:
         crack = crack_generator(surface)
     return crack
 
@@ -79,6 +56,14 @@ def generate_render_iteration(
     scene = random.choice(config.asset_collection.scenes)
     face, uv_map, surface = random.choice(scene.surfaces)
 
+    try:
+        crack = func_timeout(
+            TIMEOUT_TIME,
+            generate_crack(crack_generator, surface, config.label_parameters.min_active_pixels)
+        )
+    except FunctionTimedOut:
+        raise TimeoutError('Crack generation timed out')
+
     return RenderIteration(
         index=iteration,
         scene=scene,
@@ -86,7 +71,7 @@ def generate_render_iteration(
         face=face,
         uv_map=uv_map,
         world_texture=random.choice(config.asset_collection.world_textures),
-        crack=generate_crack(crack_generator, surface, config.label_parameters.min_active_pixels),
+        crack=crack,
         camera_translation=tuple(camera_translation),
         camera_rotation=tuple(camera_rotation)
     )
