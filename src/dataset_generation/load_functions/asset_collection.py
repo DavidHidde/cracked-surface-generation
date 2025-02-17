@@ -1,6 +1,7 @@
 import bpy
 import cv2
 import numpy as np
+from tqdm import tqdm
 
 from crack_generation import create_surface_from_image
 from dataset_generation.model import AssetCollection
@@ -105,7 +106,7 @@ def load_asset_collection(asset_collection_data: dict, crack_depth: float) -> As
 
     return AssetCollection(
         scenes=[load_scene(scene_dict, crack_displacement_image, crack_displacement_mask, crack_depth) for scene_dict in
-            asset_collection_data["scenes"]],
+            tqdm(asset_collection_data["scenes"], desc='Scenes')],
         world_textures=[bpy.data.images[hdri_name] for hdri_name in asset_collection_data['hdris']],
         crack_displacement_texture=crack_displacement_image,
         crack_displacement_mask=crack_displacement_mask

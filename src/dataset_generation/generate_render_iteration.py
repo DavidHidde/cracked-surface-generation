@@ -1,5 +1,6 @@
 import random
 
+import cv2
 import numpy as np
 from func_timeout import func_timeout, FunctionTimedOut
 
@@ -59,7 +60,8 @@ def generate_render_iteration(
     try:
         crack = func_timeout(
             TIMEOUT_TIME,
-            generate_crack(crack_generator, surface, config.label_parameters.min_active_pixels)
+            generate_crack,
+            args=(crack_generator, surface, config.label_parameters.min_active_pixels)
         )
     except FunctionTimedOut:
         raise TimeoutError('Crack generation timed out')
