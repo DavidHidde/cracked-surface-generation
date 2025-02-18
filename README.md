@@ -118,8 +118,6 @@ The framework uses a YAML file for setting most of the parameters. Please see [`
 | `y`                   | int          | Resolution height                                                                      |
 | `patches`             | int          | Number of patches to generate. 1 does not use the patch approach                       |
 | `min_active_pixels`   | int          | Minimum number of pixels that need to be active in a label for it to not get rejected  |
-| `crack`               | float        | Threshold to apply to the crack pixels. Recommended to leave unchanged.                |
-| `ao`                  | float        | Threshold for the ambient occlusion map. Recommended to leave unchanged.               |
 
 ## Generated datasets
 

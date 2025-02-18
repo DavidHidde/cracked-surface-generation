@@ -64,6 +64,3 @@ dataset_generation:
             y: 224
         patches: 3
         min_active_pixels: 100
-        threshold:
-            crack: 0.005
-            ao: 0.55

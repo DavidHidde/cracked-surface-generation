@@ -35,7 +35,6 @@ def load_camera_parameters(camera_parameters_dict: dict) -> CameraParameters:
 
 def load_label_parameters(label_parameters_dict: dict, output_directory: str) -> LabelParameters:
     """Load the label parameters from a dict. These values can be directly injected alongside the output directory."""
-    threshold_data = label_parameters_dict['threshold']
     resolution_data = label_parameters_dict['resolution']
     base_output_directory = output_directory if output_directory.startswith(os.sep) \
         else os.path.join(os.getcwd(), output_directory)
@@ -44,8 +43,6 @@ def load_label_parameters(label_parameters_dict: dict, output_directory: str) ->
         num_patches=label_parameters_dict['patches'],
         resolution=(int(resolution_data['x']), int(resolution_data['y'])),
         min_active_pixels=label_parameters_dict['min_active_pixels'],
-        crack_threshold=threshold_data['crack'],
-        ao_threshold=threshold_data['ao'],
         base_output_directory=base_output_directory,
         image_output_directory=os.path.join(base_output_directory, IMAGES_OUTPUT_DIR),
         label_output_directory=os.path.join(base_output_directory, LABELS_OUTPUT_DIR)
