@@ -4,6 +4,7 @@ from scipy.signal import find_peaks
 
 from crack_generation.model import Surface
 
+KERNEL_SIZE = 201   # Works well for 4k textures
 
 def find_brick_dims(thresholded: np.array) -> tuple[int, int]:
     """Approximate brick dims using the thresholded image. We take the last peak of the histogram as the width and height."""
@@ -36,9 +37,7 @@ def find_brick_dims(thresholded: np.array) -> tuple[int, int]:
 def create_surface_from_image(image: np.array) -> Surface:
     """Create a surface from an image through thresholding."""
     blurred = cv2.medianBlur(image, 15)
-    kernel_size = np.min(image.shape) // 20  # Consider a 5% window
-    kernel_size += 1 - kernel_size % 2  # Make uneven if necessary
-    thresholded = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, kernel_size, 2)
+    thresholded = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, KERNEL_SIZE, 2)
 
     inverse_thresholded = 255 - thresholded
     distance_transform = cv2.distanceTransform(inverse_thresholded, cv2.DIST_L2, cv2.DIST_MASK_5)

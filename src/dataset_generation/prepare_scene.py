@@ -9,14 +9,20 @@ from dataset_generation.node_injection_functions import UV_NODE_NAME
 
 def align_camera(camera: bpy.types.Camera, render_iteration: RenderIteration) -> None:
     """Align a camera to a crack and move it using a rotation and translation factor."""
-    # Move the camera to the crack and point to it. Take into account that image origin is top-left and X is inverse along Y+
-    crack_height_map = np.flip(np.flip(render_iteration.crack.crack_height_map, axis=0), axis=1)
+    # Move the camera to the crack and point to it. Take into account that image origin is top-left
+    crack_height_map = np.flip(render_iteration.crack.crack_height_map, axis=0)
     center_factor = np.average((crack_height_map > 0).nonzero(), axis=1) / np.array(crack_height_map.shape)
 
     wall = render_iteration.scene.wall
-    vertices = np.array([wall.data.vertices[vertex].co for vertex in render_iteration.face.vertices])
-    min_vertex = np.min(vertices, axis=0)  # Assume convex hull for center
-    max_vertex = np.max(vertices, axis=0)
+    mesh = wall.data
+    uv_map = render_iteration.uv_map
+
+    uvs = np.array([uv_map.data[loop_idx].uv for loop_idx in render_iteration.face.loop_indices])
+    vertices = np.array([mesh.vertices[mesh.loops[loop_idx].vertex_index].co for loop_idx in render_iteration.face.loop_indices])
+    summed_uvs = np.sum(uvs, axis=1)
+    min_vertex = vertices[np.argmin(summed_uvs)]
+    max_vertex = vertices[np.argmax(summed_uvs)]
+
     axis_align_idx = np.argmin(max_vertex - min_vertex)
     center_factor = mathutils.Vector(
         [
