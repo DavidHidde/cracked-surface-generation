@@ -39,7 +39,6 @@ def align_camera(camera: bpy.types.Camera, render_iteration: RenderIteration) ->
         ]
     )
     translation.rotate(camera.rotation_euler)
-    print('Base translation:', render_iteration.camera_translation, 'Rotated:', translation)
     camera.location = mathutils.Matrix.Translation(translation) @ camera.location
 
     rotation = render_iteration.camera_rotation

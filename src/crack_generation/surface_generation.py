@@ -27,7 +27,10 @@ def find_brick_dims(thresholded: np.array) -> tuple[int, int]:
     width_peaks, _ = find_peaks(counts_w, height=0)
     height_peaks, _ = find_peaks(counts_h, height=0)
 
-    return int(bins_w[width_peaks[-1]]), int(bins_h[height_peaks[-1]])
+    width = int(bins_w[width_peaks[-1]]) if len(width_peaks) > 0 else np.average(widths)
+    height = int(bins_h[height_peaks[-1]]) if len(height_peaks) > 0 else np.average(heights)
+
+    return width, height
 
 
 def create_surface_from_image(image: np.array) -> Surface:
