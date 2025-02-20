@@ -5,7 +5,7 @@ import bpy
 import sys
 
 # Add to path
-base_dir = os.path.join(os.path.dirname(bpy.data.filepath), '..')
+base_dir = os.path.join(os.path.dirname(bpy.data.filepath), os.getcwd())
 if base_dir not in sys.path:
     sys.path.append(base_dir)
 
@@ -45,5 +45,13 @@ parser.add_argument(
     "--cycles-device", dest="cycles_device", type=str, required=False, default='CPU',
     help="The rendering device for Cycles to use.",
 )
+parser.add_argument(
+    '--missing_resources_dir', dest='missing_resources_dir', type=str, required=False, default=None,
+    help="The path to a resources directory Blender can use to resolve any missing resources.",
+)
 args = parser.parse_args(argv)
+
+if args.missing_resources_dir:
+    bpy.ops.file.find_missing_files(directory=args.missing_resources_dir)
+
 generate_dataset.run(args.size, args.max_retries, args.config, args.output_dir)
