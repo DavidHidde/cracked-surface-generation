@@ -30,4 +30,4 @@ COPY src/ ./
 RUN blender --background --python blender_install_dependencies.py
 
 # Run Blender as entrypoint. The .blend file and args are still expected.
-ENTRYPOINT ["blender", "--background", "--python", "blender_start_render_script.py"]
+ENTRYPOINT ["blender", "--background"]

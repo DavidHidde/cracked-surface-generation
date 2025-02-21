@@ -10,7 +10,7 @@ num_retries := 1
 
 # Docker run variables. Recommended to not change these unless you know what you're doing
 image_name := blender-crack-renderer
-image_version := 1.0
+image_version := latest
 container_name := "${image_name}:${image_version}"
 
 resources_dir_local := $(PWD)/src/resources
@@ -27,7 +27,7 @@ build:
 	docker build --tag ${container_name} .
 
 render:
-	docker run -it --rm ${resources_dir_bind} ${container_name} ${scene_container_path} -- \
+	docker run -it --rm ${resources_dir_bind} ${container_name} ${scene_container_path} -P blender_start_render_script.py -- \
 		--cycles-device ${device} \
 		-s ${size} \
 		-c ${config_container_path} \

@@ -57,12 +57,12 @@ and should also use a displacement map. Without this, the framework does not fun
 
 A Dockerfile is provided in order to easily render across multiple systems. This file builds an image containing a
 properly set up Blender and framework.
-By default, when running the container, the container launches the `blender_start_render_script.py`, meaning that you
+By default, when running the container, the container just launches Blender in the background, meaning that you
 still can specify the `.blend` file and the run arguments. An example of building and running the container:
 
 ```bash
-docker build --tag blender-crack-renderer:1.0
-docker run -it --rm -v src/resources:/usr/resources blender-crack-renderer:1.0 /usr/resources/scene.blend -- \
+docker build --tag blender-crack-renderer:latest
+docker run -it --rm -v src/resources:/usr/resources blender-crack-renderer:1.0 /usr/resources/scene.blend -P blender_start_render_script.py -- \
 		--cycles-device CUDA \
 		-s 1 \
 		-c /usr/resources/configuration.yaml \
