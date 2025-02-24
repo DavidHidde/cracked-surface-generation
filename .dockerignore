@@ -265,3 +265,5 @@
 **/*.blend1
 
 **/cache/
+
+**/resources
